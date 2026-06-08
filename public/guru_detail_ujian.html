@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Ujian | CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #eef0f5;
+            padding: 2rem;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #eef0f5;
+            border-radius: 32px;
+            padding: 1.5rem;
+            box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff;
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            color: #2d2a4a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .info-item {
+            background: rgba(238,240,245,0.6);
+            padding: 0.75rem 1rem;
+            border-radius: 28px;
+            box-shadow: inset 1px 1px 2px #bebebe, inset -1px -1px 2px #ffffff;
+        }
+        .info-item strong {
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #5a4a7a;
+            margin-bottom: 5px;
+        }
+        .info-item span {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d2a4a;
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eef0f5;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            text-decoration: none;
+            color: #4a3570;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 6px 6px 12px #bebebe, -4px -4px 8px #ffffff;
+            transition: 0.2s;
+            margin-bottom: 1rem;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-back:hover {
+            transform: translateX(-5px);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(128,100,162,0.15);
+            text-align: left;
+        }
+        th {
+            font-weight: 600;
+            color: #4a3570;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .nilai-bagus {
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            display: inline-block;
+            font-weight: 600;
+        }
+        .nilai-sedang {
+            background: #f59e0b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            display: inline-block;
+            font-weight: 600;
+        }
+        .nilai-kurang {
+            background: #ef4444;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            display: inline-block;
+            font-weight: 600;
+        }
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 40px;
+            margin-bottom: 1rem;
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .info-grid { grid-template-columns: 1fr; }
+            th, td { font-size: 0.75rem; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="dashboard_guru.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    
+    <div class="card" id="infoCard">
+        <h1><i class="fas fa-file-alt"></i> <span id="namaUjian">Loading...</span></h1>
+        <div class="info-grid">
+            <div class="info-item"><strong>Mata Pelajaran</strong><span id="mapelUjian">-</span></div>
+            <div class="info-item"><strong>Waktu</strong><span id="waktuUjian">-</span></div>
+            <div class="info-item"><strong>Durasi</strong><span id="durasiUjian">-</span> menit</div>
+            <div class="info-item"><strong>Status</strong><span id="statusUjian">-</span></div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3><i class="fas fa-chart-line"></i> Daftar Nilai Siswa</h3>
+        <div id="nilaiTableContainer">
+            <table id="nilaiSiswa">
+                <thead>
+                    <tr><th>No</th><th>NIS</th><th>Nama</th><th>Kelas</th><th>Nilai</th><th>Waktu Selesai</th></tr>
+                </thead>
+                <tbody id="nilaiBody">
+                    <tr><td colspan="6" style="text-align:center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    const ujianId = new URLSearchParams(location.search).get('id');
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function loadDetail() {
+        if (!ujianId) {
+            document.getElementById('infoCard').innerHTML = '<div class="alert">ID ujian tidak ditemukan</div>';
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/api/ujian/${ujianId}?include_nilai=true`, { credentials: 'include' });
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Gagal memuat data ujian');
+            }
+            const data = await res.json();
+            // Info ujian
+            document.getElementById('namaUjian').innerText = escapeHtml(data.nama_ujian);
+            document.getElementById('mapelUjian').innerText = escapeHtml(data.mata_pelajaran?.nama_mapel || '-');
+            document.getElementById('waktuUjian').innerText = `${new Date(data.tanggal_mulai).toLocaleString()} - ${new Date(data.tanggal_akhir).toLocaleString()}`;
+            document.getElementById('durasiUjian').innerText = data.durasi_menit;
+            const statusText = data.status === 'aktif' ? 'Aktif' : 'Nonaktif';
+            document.getElementById('statusUjian').innerHTML = `<span class="${data.status === 'aktif' ? 'nilai-bagus' : 'nilai-kurang'}" style="background:${data.status === 'aktif' ? '#10b981' : '#ef4444'};">${statusText}</span>`;
+            
+            // Daftar nilai siswa
+            const tbody = document.getElementById('nilaiBody');
+            tbody.innerHTML = '';
+            if (!data.nilai_siswa || data.nilai_siswa.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada nilai untuk ujian ini</td></tr>';
+                return;
+            }
+            data.nilai_siswa.forEach((ns, i) => {
+                let nilaiClass = '';
+                let nilaiBg = '';
+                if (ns.nilai_total >= 85) {
+                    nilaiClass = 'nilai-bagus';
+                    nilaiBg = '#10b981';
+                } else if (ns.nilai_total >= 70) {
+                    nilaiClass = 'nilai-sedang';
+                    nilaiBg = '#f59e0b';
+                } else {
+                    nilaiClass = 'nilai-kurang';
+                    nilaiBg = '#ef4444';
+                }
+                tbody.innerHTML += `<tr>
+                    <td>${i+1}</td>
+                    <td>${escapeHtml(ns.siswa?.nis || '-')}</td>
+                    <td>${escapeHtml(ns.siswa?.nama_lengkap || '-')}</td>
+                    <td>${escapeHtml(ns.siswa?.kelas?.nama_kelas || '-')}</td>
+                    <td><span class="${nilaiClass}" style="background:${nilaiBg};">${ns.nilai_total}</span></td>
+                    <td>${ns.selesai_pada ? new Date(ns.selesai_pada).toLocaleString() : '-'}</td>
+                </tr>`;
+            });
+        } catch (err) {
+            console.error(err);
+            document.getElementById('infoCard').innerHTML = `<div class="alert">Error: ${escapeHtml(err.message)}. Pastikan Anda memiliki akses ke ujian ini.</div>`;
+            document.getElementById('nilaiBody').innerHTML = '<tr><td colspan="6" style="text-align:center;">Gagal memuat data</td></tr>';
+        }
+    }
+
+    loadDetail();
+</script>
+</body>
+</html>

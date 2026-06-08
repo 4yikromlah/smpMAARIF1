@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Nilai | CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #eef0f5; display: flex; justify-content: center; padding: 0 0 2rem; }
+        .main-wrapper { width: 90%; max-width: 1200px; margin: 0 auto; margin-top: max(4px, calc(env(safe-area-inset-top, 4px) / 2)); }
+        .top-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #eef0f5; border-radius: 60px; padding: 0.8rem 2rem; margin-bottom: 2rem; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; }
+        .logo-area .brand { display: flex; align-items: center; gap: 12px; }
+        .cbt-logo { font-size: 2.2rem; background: linear-gradient(145deg, #7c5e9a, #4a3b6e); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .brand h2 { font-size: 1.4rem; font-weight: 700; color: #3c2e5a; }
+        .brand p { font-size: 0.7rem; font-weight: 500; color: #7d6b9e; }
+        .status-area .online-status { display: flex; align-items: center; gap: 8px; background: #eef0f5; padding: 6px 18px; border-radius: 40px; font-weight: 600; font-size: 0.85rem; color: #2b7a4b; box-shadow: inset 2px 2px 5px #bebebe, inset -3px -3px 7px #ffffff; }
+        .led.online { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        .admin-area { display: flex; align-items: center; gap: 20px; }
+        .admin-info { display: flex; align-items: center; gap: 12px; background: #eef0f5; padding: 6px 18px; border-radius: 50px; box-shadow: inset 1px 1px 3px #bebebe, inset -2px -2px 5px #ffffff; }
+        .admin-info i { font-size: 1.8rem; color: #8b6cb0; }
+        .admin-role { font-size: 0.7rem; font-weight: 500; color: #7b6b9b; }
+        .admin-name { font-size: 0.9rem; font-weight: 700; color: #3c2e5a; }
+        .logout-btn { background: linear-gradient(145deg, #e2e6ec, #f0f4fa); padding: 8px 20px; border-radius: 40px; font-size: 0.8rem; font-weight: 600; color: #5a3a7a; text-decoration: none; display: flex; align-items: center; gap: 8px; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; transition: 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .nav-bar { margin-bottom: 1.5rem; }
+        .btn-back { display: inline-flex; align-items: center; gap: 8px; background: #eef0f5; padding: 0.6rem 1.5rem; border-radius: 40px; text-decoration: none; color: #4a3570; font-weight: 600; font-size: 0.85rem; box-shadow: 6px 6px 12px #bebebe, -4px -4px 8px #ffffff; }
+        .btn-back:hover { transform: translateX(-5px); }
+        .page-title { margin-bottom: 1.5rem; }
+        .page-title h1 { font-size: 1.8rem; font-weight: 700; color: #2d2a4a; display: flex; align-items: center; gap: 12px; }
+        .filter-card { background: rgba(248, 244, 255, 0.65); backdrop-filter: blur(8px); border-radius: 32px; padding: 1.5rem; margin-bottom: 2rem; }
+        .filter-form { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 150px; }
+        .filter-group label { display: block; font-size: 0.7rem; font-weight: 600; color: #5a4a7a; margin-bottom: 5px; }
+        .filter-group select { width: 100%; padding: 10px 15px; border: none; background: #eef0f5; border-radius: 60px; font-size: 0.85rem; box-shadow: inset 2px 2px 5px #bebebe, inset -2px -2px 5px #ffffff; }
+        .btn-filter, .btn-reset, .btn-export { background: linear-gradient(145deg, #7d64a8, #5a3e7c); color: white; border: none; padding: 10px 20px; border-radius: 60px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-reset { background: #eef0f5; color: #5a4a7a; }
+        .btn-export { background: linear-gradient(145deg, #10b981, #059669); }
+        .info-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 2rem; }
+        .info-card { background: #eef0f5; border-radius: 28px; padding: 1.5rem; text-align: center; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; position: relative; overflow: hidden; }
+        .info-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--color); }
+        .info-card:nth-child(1) { --color: #3b82f6; } .info-card:nth-child(2) { --color: #10b981; } .info-card:nth-child(3) { --color: #f59e0b; }
+        .info-card .info-value { font-size: 1.8rem; font-weight: 800; color: #2d2a4a; }
+        .info-card .info-label { font-size: 0.75rem; color: #5a4a7a; }
+        .table-card { background: rgba(248,244,255,0.65); backdrop-filter: blur(8px); border-radius: 32px; padding: 1.8rem; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid rgba(128,100,162,0.15); }
+        th { font-weight: 600; color: #4a3570; font-size: 0.8rem; text-transform: uppercase; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; background: #eef0f5; }
+        .nilai-bagus { background: #10b981; color: white; }
+        .nilai-sedang { background: #f59e0b; color: white; }
+        .nilai-kurang { background: #ef4444; color: white; }
+        @media (max-width: 860px) { .info-cards { grid-template-columns: 1fr; } .top-header { flex-direction: column; text-align: center; } .admin-area, .status-area { width: 100%; justify-content: center; } .main-wrapper { width: 95%; } .filter-form { flex-direction: column; } }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="top-header">
+        <div class="logo-area"><div class="brand"><span class="cbt-logo">📚</span><div><h2>CBT System</h2><p>SMP MAARIF TEGALAMPEL</p></div></div></div>
+        <div class="status-area"><div class="online-status"><span class="led online"></span><span>ONLINE</span></div></div>
+        <div class="admin-area">
+            <div class="admin-info"><i class="fas fa-user-circle"></i><div><span class="admin-role">Administrator</span><span class="admin-name">Administrator Utama</span></div></div>
+            <a href="logout.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+        </div>
+    </div>
+    
+    <div class="nav-bar">
+        <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    </div>
+    
+    <div class="page-title">
+        <h1><i class="fas fa-file-excel"></i> Rekap Nilai</h1>
+        <p>Per kelas, per mapel, export XLSX/PDF</p>
+    </div>
+    
+    <div class="filter-card">
+        <form class="filter-form" id="filterForm">
+            <div class="filter-group"><label>Filter Kelas</label><select id="filterKelas"><option value="">Semua Kelas</option></select></div>
+            <div class="filter-group"><label>Filter Mata Pelajaran</label><select id="filterMapel"><option value="">Semua Mapel</option></select></div>
+            <div class="filter-group"><button type="submit" class="btn-filter"><i class="fas fa-search"></i> Filter</button></div>
+            <div class="filter-group"><button type="button" class="btn-reset" onclick="resetFilter()"><i class="fas fa-undo"></i> Reset</button></div>
+            <div class="filter-group"><button type="button" class="btn-export" onclick="exportToExcel()"><i class="fas fa-download"></i> Export Excel</button></div>
+        </form>
+    </div>
+    
+    <div class="info-cards">
+        <div class="info-card"><div class="info-value" id="rataRata">0%</div><div class="info-label">RATA-RATA KESELURUHAN</div></div>
+        <div class="info-card"><div class="info-value" id="totalData">0</div><div class="info-label">TOTAL DATA REKAP</div></div>
+        <div class="info-card"><div class="info-value" id="jumlahKelas">0</div><div class="info-label">TOTAL KELAS</div></div>
+    </div>
+    
+    <div class="table-card">
+        <h3><i class="fas fa-list"></i> Rekap Nilai Siswa</h3>
+        <table id="rekapTable">
+            <thead><tr><th>No</th><th>Kelas</th><th>NIS</th><th>Nama Siswa</th><th>Mata Pelajaran</th><th>Nilai</th><th>Ujian</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function loadFilters() {
+        try {
+            const [kelasRes, mapelRes] = await Promise.all([
+                fetch(`${API_BASE}/api/kelas`, { credentials: 'include' }),
+                fetch(`${API_BASE}/api/mapel`, { credentials: 'include' })
+            ]);
+            if (!kelasRes.ok || !mapelRes.ok) throw new Error('Gagal memuat filter');
+            const kelas = await kelasRes.json();
+            const mapel = await mapelRes.json();
+            const kelasSelect = document.getElementById('filterKelas');
+            kelasSelect.innerHTML = '<option value="">Semua Kelas</option>';
+            kelas.forEach(k => kelasSelect.innerHTML += `<option value="${escapeHtml(k.nama_kelas)}">${escapeHtml(k.nama_kelas)}</option>`);
+            const mapelSelect = document.getElementById('filterMapel');
+            mapelSelect.innerHTML = '<option value="">Semua Mapel</option>';
+            mapel.forEach(m => mapelSelect.innerHTML += `<option value="${escapeHtml(m.nama_mapel)}">${escapeHtml(m.nama_mapel)}</option>`);
+        } catch(err) {
+            console.error(err);
+            alert('Gagal memuat data filter');
+        }
+    }
+
+    async function loadRekap() {
+        try {
+            const kelas = document.getElementById('filterKelas').value;
+            const mapel = document.getElementById('filterMapel').value;
+            const url = `${API_BASE}/api/rekap?kelas=${encodeURIComponent(kelas)}&mapel=${encodeURIComponent(mapel)}`;
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat rekap nilai');
+            const data = await res.json();
+            const tbody = document.querySelector('#rekapTable tbody');
+            tbody.innerHTML = '';
+            data.forEach((item, idx) => {
+                const nilaiClass = item.nilai >= 85 ? 'nilai-bagus' : (item.nilai >= 70 ? 'nilai-sedang' : 'nilai-kurang');
+                tbody.innerHTML += `<tr>
+                    <td>${idx+1}</td>
+                    <td><span class="badge">${escapeHtml(item.kelas)}</span></td>
+                    <td>${escapeHtml(item.nis)}</td>
+                    <td>${escapeHtml(item.siswa)}</td>
+                    <td>${escapeHtml(item.mata_pelajaran)}</td>
+                    <td><span class="badge ${nilaiClass}">${item.nilai}</span></td>
+                    <td>${escapeHtml(item.ujian)}</td>
+                </tr>`;
+            });
+            const statsRes = await fetch(`${API_BASE}/api/rekap/stats`, { credentials: 'include' });
+            if (statsRes.ok) {
+                const stats = await statsRes.json();
+                document.getElementById('rataRata').innerText = stats.rataRata + '%';
+                document.getElementById('totalData').innerText = stats.totalData;
+                document.getElementById('jumlahKelas').innerText = stats.jumlahKelas;
+            }
+        } catch(err) {
+            console.error(err);
+            alert('Gagal memuat rekap nilai');
+        }
+    }
+
+    function resetFilter() {
+        document.getElementById('filterKelas').value = '';
+        document.getElementById('filterMapel').value = '';
+        loadRekap();
+    }
+
+    function exportToExcel() {
+        const kelas = document.getElementById('filterKelas').value;
+        const mapel = document.getElementById('filterMapel').value;
+        window.location.href = `${API_BASE}/api/export/nilai?kelas=${encodeURIComponent(kelas)}&mapel=${encodeURIComponent(mapel)}`;
+    }
+
+    document.getElementById('filterForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        loadRekap();
+    });
+
+    loadFilters();
+    loadRekap();
+</script>
+</body>
+</html>

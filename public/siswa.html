@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kelola Siswa | CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #eef0f5; min-height: 100vh; padding: 0 0 2rem 0; display: flex; justify-content: center; }
+        .main-wrapper { width: 90%; max-width: 1200px; margin: 0 auto; margin-top: max(4px, calc(env(safe-area-inset-top, 4px) / 2)); }
+        .top-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #eef0f5; border-radius: 60px; padding: 0.8rem 2rem; margin-bottom: 2rem; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; }
+        .logo-area .brand { display: flex; align-items: center; gap: 12px; }
+        .cbt-logo { font-size: 2.2rem; background: linear-gradient(145deg, #7c5e9a, #4a3b6e); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .brand h2 { font-size: 1.4rem; font-weight: 700; color: #3c2e5a; }
+        .brand p { font-size: 0.7rem; font-weight: 500; color: #7d6b9e; }
+        .status-area .online-status { display: flex; align-items: center; gap: 8px; background: #eef0f5; padding: 6px 18px; border-radius: 40px; font-weight: 600; font-size: 0.85rem; color: #2b7a4b; box-shadow: inset 2px 2px 5px #bebebe, inset -3px -3px 7px #ffffff; }
+        .led.online { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        .admin-area { display: flex; align-items: center; gap: 20px; }
+        .admin-info { display: flex; align-items: center; gap: 12px; background: #eef0f5; padding: 6px 18px; border-radius: 50px; box-shadow: inset 1px 1px 3px #bebebe, inset -2px -2px 5px #ffffff; }
+        .admin-info i { font-size: 1.8rem; color: #8b6cb0; }
+        .admin-role { font-size: 0.7rem; font-weight: 500; color: #7b6b9b; }
+        .admin-name { font-size: 0.9rem; font-weight: 700; color: #3c2e5a; }
+        .logout-btn { background: linear-gradient(145deg, #e2e6ec, #f0f4fa); padding: 8px 20px; border-radius: 40px; font-size: 0.8rem; font-weight: 600; color: #5a3a7a; text-decoration: none; display: flex; align-items: center; gap: 8px; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; transition: 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 1.5rem; }
+        .btn-back { display: inline-flex; align-items: center; gap: 8px; background: #eef0f5; padding: 0.6rem 1.5rem; border-radius: 40px; text-decoration: none; color: #4a3570; font-weight: 600; font-size: 0.85rem; box-shadow: 6px 6px 12px #bebebe, -4px -4px 8px #ffffff; }
+        .btn-back:hover { transform: translateX(-5px); }
+        .btn-tambah { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(145deg, #10b981, #059669); padding: 0.6rem 1.5rem; border-radius: 40px; color: white; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; }
+        .btn-tambah:hover { transform: translateY(-2px); }
+        .page-title { margin-bottom: 1.5rem; }
+        .page-title h1 { font-size: 1.8rem; font-weight: 700; color: #2d2a4a; display: flex; align-items: center; gap: 12px; }
+        .page-title p { color: #5e4a7c; font-size: 0.9rem; margin-top: 5px; }
+        .info-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 2rem; }
+        .info-card { background: #eef0f5; border-radius: 28px; padding: 1.5rem; text-align: center; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; position: relative; overflow: hidden; }
+        .info-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--color); }
+        .info-card:nth-child(1) { --color: #3b82f6; } .info-card:nth-child(2) { --color: #10b981; } .info-card:nth-child(3) { --color: #f59e0b; }
+        .info-card .info-icon { font-size: 2rem; margin-bottom: 0.8rem; color: #8b6cb0; }
+        .info-card .info-value { font-size: 1.8rem; font-weight: 800; color: #2d2a4a; }
+        .info-card .info-label { font-size: 0.75rem; color: #5a4a7a; font-weight: 500; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #eef0f5; border-radius: 48px; padding: 2rem; width: 90%; max-width: 500px; box-shadow: 20px 20px 40px #bebebe, -10px -10px 20px #ffffff; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-header h3 { font-size: 1.3rem; font-weight: 700; color: #2d2a4a; display: flex; align-items: center; gap: 10px; }
+        .close-modal { background: #eef0f5; border: none; font-size: 1.5rem; cursor: pointer; color: #5a4a7a; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 8px #bebebe, -2px -2px 4px #ffffff; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 18px; border: none; background: #eef0f5; border-radius: 60px; font-size: 0.9rem; box-shadow: inset 3px 3px 6px #bebebe, inset -2px -2px 4px #ffffff; outline: none; }
+        .form-group label { display: block; font-size: 0.7rem; font-weight: 600; color: #5a4a7a; margin-bottom: 5px; margin-left: 8px; }
+        .btn-submit { background: linear-gradient(145deg, #7d64a8, #5a3e7c); color: white; border: none; padding: 10px 28px; border-radius: 60px; font-weight: 600; cursor: pointer; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; width: 100%; }
+        .table-card { background: rgba(248, 244, 255, 0.65); backdrop-filter: blur(8px); border-radius: 32px; padding: 1.8rem; box-shadow: 15px 15px 30px rgba(0,0,0,0.1), -10px -10px 20px rgba(255,255,245,0.7); overflow-x: auto; }
+        .table-card h3 { font-size: 1.2rem; font-weight: 700; color: #2b2b4a; margin-bottom: 1.2rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid rgba(128, 100, 162, 0.15); }
+        th { font-weight: 600; color: #4a3570; font-size: 0.8rem; text-transform: uppercase; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; background: #eef0f5; box-shadow: inset 1px 1px 2px #bebebe, inset -1px -1px 2px #ffffff; }
+        .btn-delete { background: #eef0f5; padding: 5px 14px; border-radius: 40px; font-size: 0.7rem; color: #ef4444; text-decoration: none; font-weight: 600; box-shadow: 4px 4px 8px #bebebe, -2px -2px 4px #ffffff; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: none; }
+        .btn-delete:hover { background: #fee2e2; }
+        @media (max-width: 860px) { .info-cards { grid-template-columns: 1fr; } .top-header { flex-direction: column; text-align: center; } .admin-area, .status-area { width: 100%; justify-content: center; } .main-wrapper { width: 95%; } .nav-bar { flex-direction: column; align-items: stretch; } .btn-back, .btn-tambah { justify-content: center; } }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="top-header">
+        <div class="logo-area"><div class="brand"><span class="cbt-logo">📚</span><div><h2>CBT System</h2><p>SMP MAARIF TEGALAMPEL</p></div></div></div>
+        <div class="status-area"><div class="online-status"><span class="led online"></span><span>ONLINE</span></div></div>
+        <div class="admin-area">
+            <div class="admin-info"><i class="fas fa-user-circle"></i><div><span class="admin-role">Administrator</span><span class="admin-name">Administrator Utama</span></div></div>
+            <a href="logout.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+        </div>
+    </div>
+    
+    <div class="nav-bar">
+        <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn-tambah" onclick="openModal()"><i class="fas fa-plus-circle"></i> Tambah Siswa</button>
+            <button class="btn-tambah" onclick="openImportModal()" style="background: linear-gradient(145deg, #3b82f6, #2563eb);"><i class="fas fa-upload"></i> Import Excel</button>
+            <button id="downloadTemplateBtn" class="btn-tambah" style="background: linear-gradient(145deg, #f59e0b, #d97706);"><i class="fas fa-download"></i> Download Template</button>
+        </div>
+    </div>
+    
+    <div class="page-title"><h1><i class="fas fa-user-graduate"></i> Kelola Siswa</h1><p>Tambah, edit, hapus, & import data siswa (dengan username & password)</p></div>
+    
+    <div class="info-cards">
+        <div class="info-card"><div class="info-icon"><i class="fas fa-users"></i></div><div class="info-value" id="totalSiswa">0</div><div class="info-label">TOTAL SISWA</div></div>
+        <div class="info-card"><div class="info-icon"><i class="fas fa-school"></i></div><div class="info-value" id="siswaAktif">0</div><div class="info-label">SISWA AKTIF</div></div>
+        <div class="info-card"><div class="info-icon"><i class="fas fa-chalkboard"></i></div><div class="info-value" id="totalKelas">0</div><div class="info-label">TOTAL KELAS</div></div>
+    </div>
+    
+    <!-- Modal Tambah Siswa -->
+    <div class="modal" id="modalSiswa">
+        <div class="modal-content">
+            <div class="modal-header"><h3><i class="fas fa-user-plus"></i> Tambah Siswa Baru</h3><button class="close-modal" onclick="closeModal()">&times;</button></div>
+            <form id="formTambahSiswa">
+                <div class="form-group"><input type="text" name="nama" placeholder="Nama Lengkap" required></div>
+                <div class="form-group"><input type="text" name="nis" placeholder="NIS" required></div>
+                <div class="form-group"><input type="text" name="username" placeholder="Username" required></div>
+                <div class="form-group"><input type="password" name="password" placeholder="Password" required></div>
+                <div class="form-group">
+                    <select id="kelasSelect" name="kelas" required>
+                        <option value="">Pilih Kelas</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Simpan Siswa</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Import Excel -->
+    <div class="modal" id="modalImport">
+        <div class="modal-content">
+            <div class="modal-header"><h3><i class="fas fa-file-excel"></i> Import Siswa dari Excel</h3><button class="close-modal" onclick="closeImportModal()">&times;</button></div>
+            <form id="formImport" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Pilih File Excel (.xlsx)</label>
+                    <input type="file" name="file" accept=".xlsx, .xls" required>
+                </div>
+                <div class="form-group">
+                    <p style="font-size:0.8rem; color:#5a4a7a;">
+                        <i class="fas fa-info-circle"></i> Format file harus sesuai dengan template. 
+                        <a href="#" id="templateLinkInModal" style="color:#7d64a8;">Download template disini</a>
+                    </p>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-upload"></i> Import</button>
+            </form>
+            <div id="importResult" style="margin-top:1rem; font-size:0.8rem;"></div>
+        </div>
+    </div>
+    
+    <div class="table-card">
+        <h3><i class="fas fa-list"></i> Daftar Siswa</h3>
+        <table id="siswaTable">
+            <thead><tr><th>No</th><th>NIS</th><th>Username</th><th>Nama Lengkap</th><th>Kelas</th><th>Terdaftar</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function loadSiswa() {
+        try {
+            const res = await fetch(`${API_BASE}/api/siswa`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat data siswa');
+            const siswaList = await res.json();
+            const tbody = document.querySelector('#siswaTable tbody');
+            tbody.innerHTML = '';
+            let kelasSet = new Set();
+            siswaList.forEach((s, i) => {
+                kelasSet.add(s.kelas?.nama_kelas);
+                tbody.innerHTML += `<tr>
+                    <td>${i+1}</td>
+                    <td>${escapeHtml(s.nis)}</td>
+                    <td>${escapeHtml(s.username)}</td>
+                    <td>${escapeHtml(s.nama_lengkap)}</td>
+                    <td><span class="badge">${escapeHtml(s.kelas?.nama_kelas || '-')}</span></td>
+                    <td>${new Date(s.created_at).toLocaleDateString('id-ID')}</td>
+                    <td><button class="btn-delete" data-id="${s.id}"><i class="fas fa-trash-alt"></i> Hapus</button></td>
+                　`</td></tr>`;
+            });
+            document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (confirm('Yakin hapus siswa ini?')) {
+                        try {
+                            await fetch(`${API_BASE}/api/siswa/${btn.dataset.id}`, { method: 'DELETE', credentials: 'include' });
+                            loadSiswa();
+                        } catch(err) {
+                            alert('Gagal menghapus siswa');
+                        }
+                    }
+                });
+            });
+            document.getElementById('totalSiswa').innerText = siswaList.length;
+            document.getElementById('siswaAktif').innerText = siswaList.length;
+            document.getElementById('totalKelas').innerText = kelasSet.size;
+        } catch(err) {
+            console.error(err);
+            alert('Gagal memuat data siswa');
+        }
+    }
+
+    async function loadKelasDropdown() {
+        try {
+            const res = await fetch(`${API_BASE}/api/kelas`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat kelas');
+            const kelasList = await res.json();
+            const select = document.getElementById('kelasSelect');
+            select.innerHTML = '<option value="">Pilih Kelas</option>';
+            kelasList.forEach(k => select.innerHTML += `<option value="${k.id}">${escapeHtml(k.nama_kelas)}</option>`);
+        } catch(err) {
+            console.error(err);
+        }
+    }
+
+    document.getElementById('formTambahSiswa').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nama = document.querySelector('input[name="nama"]').value.trim();
+        const nis = document.querySelector('input[name="nis"]').value.trim();
+        const username = document.querySelector('input[name="username"]').value.trim();
+        const password = document.querySelector('input[name="password"]').value;
+        const id_kelas = document.getElementById('kelasSelect').value;
+        if (!nama || !nis || !username || !password || !id_kelas) {
+            alert('Semua field harus diisi');
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/api/siswa`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ nama_lengkap: nama, nis, username, password, id_kelas })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Gagal menambah siswa');
+            }
+            closeModal();
+            loadSiswa();
+            document.getElementById('formTambahSiswa').reset();
+        } catch(err) {
+            alert(err.message);
+        }
+    });
+
+    function openModal() { document.getElementById('modalSiswa').classList.add('active'); }
+    function closeModal() { document.getElementById('modalSiswa').classList.remove('active'); }
+
+    function openImportModal() {
+        document.getElementById('modalImport').classList.add('active');
+        document.getElementById('importResult').innerHTML = '';
+    }
+    function closeImportModal() { document.getElementById('modalImport').classList.remove('active'); }
+
+    async function downloadTemplate() {
+        try {
+            const response = await fetch(`${API_BASE}/api/siswa/template`, { credentials: 'include' });
+            if (!response.ok) throw new Error('Gagal download template');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'template_import_siswa.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            alert('Gagal download template: ' + err.message);
+        }
+    }
+
+    document.getElementById('downloadTemplateBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        downloadTemplate();
+    });
+    document.getElementById('templateLinkInModal').addEventListener('click', (e) => {
+        e.preventDefault();
+        downloadTemplate();
+    });
+
+    document.getElementById('formImport').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = document.querySelector('#modalImport input[type="file"]');
+        if (!fileInput.files.length) {
+            alert('Pilih file terlebih dahulu');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        try {
+            const res = await fetch(`${API_BASE}/api/siswa/import`, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('importResult').innerHTML = `
+                    <div style="background:#d1fae5; padding:10px; border-radius:20px; color:#065f46;">
+                        ✅ Import selesai!<br>
+                        Berhasil: ${data.successCount} siswa<br>
+                        Gagal: ${data.failedCount} siswa
+                        ${data.errors && data.errors.length ? `<br><strong>Detail error:</strong><br>${data.errors.slice(0,5).join('<br>')}` : ''}
+                    </div>
+                `;
+                loadSiswa();
+                setTimeout(() => closeImportModal(), 2000);
+            } else {
+                alert('Gagal import: ' + data.error);
+            }
+        } catch(err) {
+            alert('Terjadi kesalahan saat import: ' + err.message);
+        }
+    });
+
+    window.onclick = (e) => {
+        if (e.target === document.getElementById('modalSiswa')) closeModal();
+        if (e.target === document.getElementById('modalImport')) closeImportModal();
+    };
+
+    loadSiswa();
+    loadKelasDropdown();
+</script>
+</body>
+</html>

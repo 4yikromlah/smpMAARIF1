@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Nilai Excel - CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #eef0f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+        .card {
+            background: #eef0f5;
+            border-radius: 48px;
+            padding: 2rem;
+            box-shadow: 20px 20px 40px #bebebe, -10px -10px 20px #ffffff;
+        }
+        .card h2 {
+            font-size: 1.6rem;
+            color: #2d2a4a;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .card p {
+            color: #5a4a7a;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            align-items: flex-end;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-group label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #5a4a7a;
+            margin-bottom: 5px;
+        }
+        .filter-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            background: #eef0f5;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            box-shadow: inset 2px 2px 5px #bebebe, inset -2px -2px 5px #ffffff;
+            outline: none;
+        }
+        .btn {
+            background: linear-gradient(145deg, #7d64a8, #5a3e7c);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-excel {
+            background: linear-gradient(145deg, #10b981, #059669);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(248,244,255,0.5);
+            border-radius: 32px;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(128,100,162,0.15);
+        }
+        th {
+            font-weight: 600;
+            color: #4a3570;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: #7d64a8;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .back-link i {
+            margin-right: 5px;
+        }
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 40px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+        }
+        .alert-error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h2><i class="fas fa-file-excel"></i> Export Nilai ke Excel</h2>
+        <p>Filter data dan download dalam format Excel (.xlsx)</p>
+        
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label><i class="fas fa-building"></i> Kelas</label>
+                <select id="filterKelas">
+                    <option value="">Semua Kelas</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-book"></i> Mata Pelajaran</label>
+                <select id="filterMapel">
+                    <option value="">Semua Mapel</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button class="btn" onclick="applyFilter()"><i class="fas fa-search"></i> Filter</button>
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-excel" onclick="exportToExcel()"><i class="fas fa-download"></i> Download Excel</button>
+            </div>
+        </div>
+        
+        <div id="infoMessage"></div>
+        
+        <div class="table-wrapper">
+            <table id="nilaiTable">
+                <thead>
+                    <tr>
+                        <th>No</th><th>Siswa</th><th>NIS</th><th>Kelas</th>
+                        <th>Mata Pelajaran</th><th>Ujian</th><th>Nilai</th><th>Tanggal</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="8" style="text-align:center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function loadFilters() {
+        try {
+            const [kelasRes, mapelRes] = await Promise.all([
+                fetch(`${API_BASE}/api/kelas`, { credentials: 'include' }),
+                fetch(`${API_BASE}/api/mapel`, { credentials: 'include' })
+            ]);
+            if (!kelasRes.ok || !mapelRes.ok) throw new Error('Gagal memuat filter');
+            const kelas = await kelasRes.json();
+            const mapel = await mapelRes.json();
+            const kelasSelect = document.getElementById('filterKelas');
+            kelasSelect.innerHTML = '<option value="">Semua Kelas</option>';
+            kelas.forEach(k => kelasSelect.innerHTML += `<option value="${escapeHtml(k.nama_kelas)}">${escapeHtml(k.nama_kelas)}</option>`);
+            const mapelSelect = document.getElementById('filterMapel');
+            mapelSelect.innerHTML = '<option value="">Semua Mapel</option>';
+            mapel.forEach(m => mapelSelect.innerHTML += `<option value="${escapeHtml(m.nama_mapel)}">${escapeHtml(m.nama_mapel)}</option>`);
+        } catch(err) {
+            console.error(err);
+            document.getElementById('infoMessage').innerHTML = `<div class="alert alert-error">Gagal memuat filter: ${escapeHtml(err.message)}</div>`;
+        }
+    }
+
+    async function loadData() {
+        const kelas = document.getElementById('filterKelas').value;
+        const mapel = document.getElementById('filterMapel').value;
+        let url = `${API_BASE}/api/rekap`;
+        const params = [];
+        if (kelas) params.push(`kelas=${encodeURIComponent(kelas)}`);
+        if (mapel) params.push(`mapel=${encodeURIComponent(mapel)}`);
+        if (params.length) url += '?' + params.join('&');
+        
+        try {
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat data');
+            const data = await res.json();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Tidak ada data</td></tr>';
+                return;
+            }
+            data.forEach((item, idx) => {
+                const nilaiClass = item.nilai >= 85 ? 'style="color:#10b981; font-weight:bold;"' : (item.nilai >= 70 ? 'style="color:#f59e0b; font-weight:bold;"' : 'style="color:#ef4444; font-weight:bold;"');
+                tbody.innerHTML += `<tr>
+                    <td>${idx+1}</td>
+                    <td>${escapeHtml(item.siswa)}</td>
+                    <td>${escapeHtml(item.nis)}</td>
+                    <td><span class="badge">${escapeHtml(item.kelas)}</span></td>
+                    <td>${escapeHtml(item.mata_pelajaran)}</td>
+                    <td>${escapeHtml(item.ujian)}</td>
+                    <td ${nilaiClass}>${item.nilai}</td>
+                    <td>${escapeHtml(item.tanggal)}</td>
+                </tr>`;
+            });
+        } catch(err) {
+            console.error(err);
+            document.getElementById('tableBody').innerHTML = `<tr><td colspan="8" style="text-align:center;">Error: ${escapeHtml(err.message)}</td></tr>`;
+        }
+    }
+
+    function applyFilter() {
+        loadData();
+    }
+
+    function exportToExcel() {
+        const kelas = document.getElementById('filterKelas').value;
+        const mapel = document.getElementById('filterMapel').value;
+        let url = `${API_BASE}/api/export/nilai`;
+        const params = [];
+        if (kelas) params.push(`kelas=${encodeURIComponent(kelas)}`);
+        if (mapel) params.push(`mapel=${encodeURIComponent(mapel)}`);
+        if (params.length) url += '?' + params.join('&');
+        window.location.href = url;
+    }
+
+    loadFilters();
+    loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refresh Token - CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef0f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .container {
+            width: 100%;
+            max-width: 550px;
+        }
+        .card {
+            background: #eef0f5;
+            border-radius: 48px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 20px 20px 40px #bebebe, -10px -10px 20px #ffffff;
+        }
+        .card h2 {
+            font-size: 1.6rem;
+            color: #2d2a4a;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .card p {
+            color: #5a4a7a;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .token-list {
+            background: #2d2a4a;
+            color: #eef0f5;
+            padding: 1rem;
+            border-radius: 24px;
+            text-align: left;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #5a4a7a;
+            margin-bottom: 5px;
+            margin-left: 8px;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 12px 18px;
+            border: none;
+            background: #eef0f5;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            box-shadow: inset 3px 3px 6px #bebebe, inset -2px -2px 4px #ffffff;
+            outline: none;
+        }
+        .btn {
+            background: linear-gradient(145deg, #7d64a8, #5a3e7c);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff;
+            transition: 0.2s;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #6f5298;
+        }
+        .btn-secondary {
+            background: linear-gradient(145deg, #10b981, #059669);
+            margin-top: 1rem;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #7d64a8;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .back-link i {
+            margin-right: 5px;
+        }
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 40px;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            background: #eef0f5;
+            box-shadow: inset 1px 1px 3px #bebebe, inset -1px -1px 3px #ffffff;
+        }
+        .alert-success {
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+        .alert-error {
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h2><i class="fas fa-sync-alt"></i> Refresh Token Ujian</h2>
+        <p>Generate token baru untuk ujian yang sedang aktif</p>
+        
+        <div class="form-group">
+            <label><i class="fas fa-file-alt"></i> Pilih Ujian</label>
+            <select id="ujianSelect">
+                <option value="">-- Pilih Ujian --</option>
+            </select>
+        </div>
+        
+        <button class="btn" onclick="refreshToken()"><i class="fas fa-sync-alt"></i> Refresh Token</button>
+        
+        <div id="tokenResult" class="token-list">Belum ada token</div>
+        
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function loadUjianList() {
+        try {
+            const res = await fetch(`${API_BASE}/api/ujian`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat daftar ujian');
+            const ujian = await res.json();
+            const select = document.getElementById('ujianSelect');
+            select.innerHTML = '<option value="">-- Pilih Ujian --</option>';
+            ujian.forEach(u => {
+                select.innerHTML += `<option value="${u.id}">${escapeHtml(u.nama_ujian)} (${escapeHtml(u.mata_pelajaran?.nama_mapel || '-')}) - ${u.status}</option>`;
+            });
+        } catch (err) {
+            console.error(err);
+            document.getElementById('tokenResult').innerHTML = `<div class="alert alert-error">Gagal memuat daftar ujian: ${err.message}</div>`;
+        }
+    }
+
+    async function refreshToken() {
+        const ujianId = document.getElementById('ujianSelect').value;
+        if (!ujianId) {
+            document.getElementById('tokenResult').innerHTML = '<div class="alert alert-error">Silakan pilih ujian terlebih dahulu</div>';
+            return;
+        }
+        const btn = document.querySelector('.btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Memproses...';
+        btn.disabled = true;
+        
+        try {
+            const res = await fetch(`${API_BASE}/api/token/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ id_ujian: parseInt(ujianId) })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('tokenResult').innerHTML = `
+                    <div class="alert alert-success">
+                        <strong>✅ Token baru berhasil dibuat!</strong><br>
+                        Token: <code style="background:#1e1b3a; padding:4px 8px; border-radius:12px;">${escapeHtml(data.token)}</code>
+                    </div>
+                `;
+            } else {
+                document.getElementById('tokenResult').innerHTML = `<div class="alert alert-error">❌ Gagal refresh token: ${escapeHtml(data.error || 'Unknown error')}</div>`;
+            }
+        } catch (err) {
+            document.getElementById('tokenResult').innerHTML = `<div class="alert alert-error">❌ Error: ${err.message}</div>`;
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    loadUjianList();
+</script>
+</body>
+</html>

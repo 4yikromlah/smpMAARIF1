@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Dashboard Admin | CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #eef0f5; min-height: 100vh; padding: 0 0 2rem 0; display: flex; justify-content: center; }
+        .main-wrapper { width: 90%; max-width: 1200px; margin: 0 auto; margin-top: max(4px, calc(env(safe-area-inset-top, 4px) / 2)); }
+        .top-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #eef0f5; border-radius: 60px; padding: 0.8rem 2rem; margin-bottom: 2rem; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; }
+        .logo-area .brand { display: flex; align-items: center; gap: 12px; }
+        .cbt-logo { font-size: 2.2rem; background: linear-gradient(145deg, #7c5e9a, #4a3b6e); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .brand h2 { font-size: 1.4rem; font-weight: 700; color: #3c2e5a; }
+        .brand p { font-size: 0.7rem; font-weight: 500; color: #7d6b9e; }
+        .status-area .online-status { display: flex; align-items: center; gap: 8px; background: #eef0f5; padding: 6px 18px; border-radius: 40px; font-weight: 600; font-size: 0.85rem; color: #2b7a4b; box-shadow: inset 2px 2px 5px #bebebe, inset -3px -3px 7px #ffffff; }
+        .led.online { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        .admin-area { display: flex; align-items: center; gap: 20px; }
+        .admin-info { display: flex; align-items: center; gap: 12px; background: #eef0f5; padding: 6px 18px; border-radius: 50px; box-shadow: inset 1px 1px 3px #bebebe, inset -2px -2px 5px #ffffff; }
+        .admin-info i { font-size: 1.8rem; color: #8b6cb0; }
+        .admin-role { font-size: 0.7rem; font-weight: 500; color: #7b6b9b; }
+        .admin-name { font-size: 0.9rem; font-weight: 700; color: #3c2e5a; }
+        .logout-btn { background: linear-gradient(145deg, #e2e6ec, #f0f4fa); padding: 8px 20px; border-radius: 40px; font-size: 0.8rem; font-weight: 600; color: #5a3a7a; text-decoration: none; display: flex; align-items: center; gap: 8px; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; transition: 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .dashboard-title { margin-bottom: 2rem; }
+        .dashboard-title h1 { font-size: 1.8rem; font-weight: 700; color: #2d2a4a; margin-bottom: 5px; }
+        .dashboard-title p { color: #5e4a7c; font-size: 0.9rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 28px; margin-bottom: 48px; }
+        .stat-card { background: #eef0f5; border-radius: 32px; padding: 1.5rem 0.8rem; text-align: center; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--color); }
+        .stat-card:nth-child(1) { --color: #3b82f6; } .stat-card:nth-child(2) { --color: #10b981; } .stat-card:nth-child(3) { --color: #f59e0b; } .stat-card:nth-child(4) { --color: #8b5cf6; } .stat-card:nth-child(5) { --color: #ef4444; } .stat-card:nth-child(6) { --color: #06b6d4; }
+        .stat-title { font-size: 0.85rem; font-weight: 600; color: #5a4a7a; letter-spacing: 1px; margin-bottom: 12px; }
+        .stat-number { font-size: 2.6rem; font-weight: 800; background: linear-gradient(145deg, #2b3b5e, #402f62); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-bottom: 0; }
+        .menu-card { background: rgba(248, 244, 255, 0.65); backdrop-filter: blur(8px); border-radius: 48px; padding: 1.4rem 1.2rem; box-shadow: 15px 15px 30px rgba(0,0,0,0.1), -10px -10px 20px rgba(255,255,245,0.7); transition: 0.3s; }
+        .menu-card:hover { transform: translateY(-5px); background: rgba(253, 250, 255, 0.85); }
+        .menu-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: #2b2b4a; }
+        .menu-title i { font-size: 1.4rem; color: #9d7fd1; }
+        .menu-desc { font-size: 0.75rem; color: #5a5475; margin-bottom: 18px; line-height: 1.4; }
+        .btn-menu { display: inline-flex; align-items: center; gap: 8px; background: #eef0f5; padding: 0.5rem 1.2rem; border-radius: 60px; font-size: 0.75rem; font-weight: 600; color: #4a3570; text-decoration: none; box-shadow: 6px 6px 12px #bebebe, -4px -4px 8px #ffffff; transition: 0.2s; }
+        .btn-menu:hover { transform: translateY(-2px); background: #f4f6fc; }
+        @media (max-width: 1024px) { .menu-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 860px) { .top-header { flex-direction: column; gap: 15px; text-align: center; } .admin-area, .status-area { width: 100%; justify-content: center; } .main-wrapper { width: 95%; } }
+        @media (max-width: 640px) { .menu-grid { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="top-header">
+        <div class="logo-area"><div class="brand"><span class="cbt-logo">📚</span><div><h2>CBT System</h2><p>SMP MAARIF TEGALAMPEL</p></div></div></div>
+        <div class="status-area"><div class="online-status"><span class="led online"></span><span>ONLINE</span></div></div>
+        <div class="admin-area">
+            <div class="admin-info"><i class="fas fa-user-circle"></i><div><span class="admin-role">Administrator</span><span class="admin-name" id="adminNameDisplay">Administrator Utama</span></div></div>
+            <a href="logout.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+        </div>
+    </div>
+    <div class="dashboard-title"><h1>Dashboard Admin</h1><p>Panel administrasi sistem CBT SMP MAARIF Tegalampel</p></div>
+    
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-title">TOTAL GURU</div><div class="stat-number" id="totalGuru">0</div></div>
+        <div class="stat-card"><div class="stat-title">TOTAL SISWA</div><div class="stat-number" id="totalSiswa">0</div></div>
+        <div class="stat-card"><div class="stat-title">SESI AKTIF</div><div class="stat-number" id="totalSesi">0</div></div>
+        <div class="stat-card"><div class="stat-title">TOTAL UJIAN</div><div class="stat-number" id="totalUjian">0</div></div>
+        <div class="stat-card"><div class="stat-title">UJIAN AKTIF</div><div class="stat-number" id="ujianAktif">0</div></div>
+        <div class="stat-card"><div class="stat-title">RATA-RATA NILAI</div><div class="stat-number" id="rataNilai">0%</div></div>
+    </div>
+    
+    <div class="menu-grid">
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-user-shield"></i> Kelola Admin</div><div class="menu-desc">Tambah, edit, hapus akun admin</div><a href="admin.html" class="btn-menu">Kelola Admin →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-user-graduate"></i> Kelola Siswa</div><div class="menu-desc">Tambah, edit, hapus, & import siswa</div><a href="siswa.html" class="btn-menu">Kelola Siswa →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-chalkboard"></i> Kelola Guru</div><div class="menu-desc">Tambah, edit, hapus akun guru</div><a href="guru.html" class="btn-menu">Kelola Guru →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-eye"></i> Kelola Pengawas</div><div class="menu-desc">Tugaskan guru sebagai pengawas</div><a href="pengawas.html" class="btn-menu">Kelola Pengawas →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-laptop-file"></i> Kelola Ujian</div><div class="menu-desc">Buat, edit, atur ujian CBT</div><a href="ujian.html" class="btn-menu">Kelola Ujian →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-book-open"></i> Mata Pelajaran & Kelas</div><div class="menu-desc">Kelola mapel dan kelas</div><a href="mapel_kelas.html" class="btn-menu">Mapel & Kelas →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-chart-simple"></i> Hasil Ujian</div><div class="menu-desc">Lihat hasil ujian siswa</div><a href="hasil_ujian.html" class="btn-menu">Lihat Hasil →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-file-excel"></i> Rekap Nilai</div><div class="menu-desc">Per kelas, per mapel, export</div><a href="rekap_nilai.html" class="btn-menu">Rekap Nilai →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-desktop"></i> Monitoring Ujian</div><div class="menu-desc">Pantau ujian dan sesi aktif</div><a href="monitoring_ujian.html" class="btn-menu">Monitoring →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-sync-alt"></i> Refresh Token</div><div class="menu-desc">Generate token akses ujian</div><a href="refresh_token.html" class="btn-menu">Refresh Token →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-download"></i> Export Nilai</div><div class="menu-desc">Export data nilai ke Excel</div><a href="export_nilai_excel.html" class="btn-menu">Export →</a></div>
+        <div class="menu-card"><div class="menu-title"><i class="fas fa-chalkboard-user"></i> Portal Guru</div><div class="menu-desc">Login sebagai guru pengawas</div><a href="login_guru.html" class="btn-menu">Login Guru →</a></div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    async function loadDashboardStats() {
+        try {
+            const [guruRes, siswaRes, ujianRes, statsRes, monitoringRes] = await Promise.all([
+                fetch(`${API_BASE}/api/guru`, { credentials: 'include' }),
+                fetch(`${API_BASE}/api/siswa`, { credentials: 'include' }),
+                fetch(`${API_BASE}/api/ujian`, { credentials: 'include' }),
+                fetch(`${API_BASE}/api/rekap/stats`, { credentials: 'include' }),
+                fetch(`${API_BASE}/api/monitoring/active-exams`, { credentials: 'include' })
+            ]);
+            if (!guruRes.ok || !siswaRes.ok || !ujianRes.ok || !statsRes.ok || !monitoringRes.ok) throw new Error('Gagal memuat data');
+            const guru = await guruRes.json();
+            const siswa = await siswaRes.json();
+            const ujian = await ujianRes.json();
+            const stats = await statsRes.json();
+            const monitoring = await monitoringRes.json();
+            document.getElementById('totalGuru').innerText = guru.length;
+            document.getElementById('totalSiswa').innerText = siswa.length;
+            document.getElementById('totalUjian').innerText = ujian.length;
+            document.getElementById('ujianAktif').innerText = ujian.filter(u => u.status === 'aktif').length;
+            document.getElementById('rataNilai').innerText = (stats.rataRata || 0) + '%';
+            const totalSesi = monitoring.reduce((a, b) => a + (b.sesi_ujian_siswa?.length || 0), 0);
+            document.getElementById('totalSesi').innerText = totalSesi;
+        } catch (err) {
+            console.error(err);
+            document.querySelectorAll('.stat-number').forEach(el => { if (el.innerText === '0') el.innerText = '?'; });
+        }
+    }
+    loadDashboardStats();
+</script>
+</body>
+</html>

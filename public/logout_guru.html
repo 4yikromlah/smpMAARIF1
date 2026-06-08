@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout Guru - CBT System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #eef0f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
+        .card {
+            background: #eef0f5;
+            border-radius: 48px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 20px 20px 40px #bebebe, -10px -10px 20px #ffffff;
+            max-width: 400px;
+            width: 100%;
+        }
+        .card i {
+            font-size: 3rem;
+            color: #10b981;
+            margin-bottom: 1rem;
+        }
+        .card h2 {
+            color: #2d2a4a;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+        .card p {
+            color: #5a4a7a;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .btn {
+            background: linear-gradient(145deg, #7d64a8, #5a3e7c);
+            color: white;
+            padding: 10px 28px;
+            border-radius: 60px;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff;
+            transition: 0.2s;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #6f5298;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <i class="fas fa-check-circle"></i>
+    <h2>Berhasil Logout</h2>
+    <p>Anda telah keluar dari portal guru. Mengalihkan ke halaman login...</p>
+    <a href="login_guru.html" class="btn">Kembali ke Login</a>
+</div>
+
+<script src="config.js"></script>
+<script>
+    (async function() {
+        try {
+            await fetch(`${API_BASE}/api/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (err) {
+            console.warn('Logout endpoint error:', err);
+        } finally {
+            setTimeout(() => {
+                window.location.href = 'login_guru.html';
+            }, 1500);
+        }
+    })();
+</script>
+</body>
+</html>

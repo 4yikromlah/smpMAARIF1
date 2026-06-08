@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Login Guru | CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #eef0f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-card {
+            background: #eef0f5;
+            border-radius: 48px;
+            padding: 2.5rem;
+            box-shadow: 20px 20px 40px #bebebe, -10px -10px 20px #ffffff;
+            text-align: center;
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .login-card h1 {
+            font-size: 1.8rem;
+            color: #3c2e5a;
+            margin-bottom: 0.5rem;
+        }
+        .login-card p {
+            color: #7d6b9e;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            background: #eef0f5;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            box-shadow: inset 4px 4px 8px #bebebe, inset -3px -3px 6px #ffffff;
+            outline: none;
+        }
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(145deg, #7d64a8, #5a3e7c);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff;
+            transition: 0.2s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            background: #6f5298;
+        }
+        .demo-info {
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            color: #7d6b9e;
+            text-align: left;
+            background: rgba(248,244,255,0.5);
+            padding: 12px;
+            border-radius: 24px;
+        }
+        .admin-link {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+        }
+        .admin-link a {
+            color: #7d64a8;
+            text-decoration: none;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="login-card">
+        <div class="logo">👨‍🏫</div>
+        <h1>Portal Guru</h1>
+        <p>SMP MAARIF TEGALAMPEL</p>
+        <form id="loginGuruForm">
+            <div class="form-group">
+                <input type="text" id="nip" placeholder="NIP" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <div id="loginError" class="error-message"></div>
+        </form>
+        <div class="demo-info">
+            <i class="fas fa-info-circle"></i> <strong>Demo Akun:</strong><br>
+            NIP: 198001012010011001<br>
+            Password: guru123
+        </div>
+        <div class="admin-link">
+            <i class="fas fa-user-shield"></i> <a href="login.html">Login sebagai Admin →</a>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    const form = document.getElementById('loginGuruForm');
+    const errorDiv = document.getElementById('loginError');
+    const submitBtn = form.querySelector('.btn-login');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nip = document.getElementById('nip').value.trim();
+        const password = document.getElementById('password').value;
+        if (!nip || !password) {
+            errorDiv.innerText = 'NIP dan password harus diisi';
+            return;
+        }
+        errorDiv.innerText = '';
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Memproses...';
+        submitBtn.disabled = true;
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/login/guru`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nip, password }),
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.href = data.redirect || 'dashboard_guru.html';
+            } else {
+                errorDiv.innerText = data.error || 'Login gagal, periksa NIP/password';
+            }
+        } catch (err) {
+            console.error(err);
+            errorDiv.innerText = 'Tidak dapat terhubung ke server. Pastikan backend berjalan.';
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

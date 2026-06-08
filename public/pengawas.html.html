@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kelola Pengawas | CBT System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #eef0f5; min-height: 100vh; padding: 0 0 2rem 0; display: flex; justify-content: center; }
+        .main-wrapper { width: 90%; max-width: 1200px; margin: 0 auto; margin-top: max(4px, calc(env(safe-area-inset-top, 4px) / 2)); }
+        .top-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #eef0f5; border-radius: 60px; padding: 0.8rem 2rem; margin-bottom: 2rem; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; }
+        .logo-area .brand { display: flex; align-items: center; gap: 12px; }
+        .cbt-logo { font-size: 2.2rem; background: linear-gradient(145deg, #7c5e9a, #4a3b6e); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .brand h2 { font-size: 1.4rem; font-weight: 700; color: #3c2e5a; }
+        .brand p { font-size: 0.7rem; font-weight: 500; color: #7d6b9e; }
+        .status-area .online-status { display: flex; align-items: center; gap: 8px; background: #eef0f5; padding: 6px 18px; border-radius: 40px; font-weight: 600; font-size: 0.85rem; color: #2b7a4b; box-shadow: inset 2px 2px 5px #bebebe, inset -3px -3px 7px #ffffff; }
+        .led.online { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        .admin-area { display: flex; align-items: center; gap: 20px; }
+        .admin-info { display: flex; align-items: center; gap: 12px; background: #eef0f5; padding: 6px 18px; border-radius: 50px; box-shadow: inset 1px 1px 3px #bebebe, inset -2px -2px 5px #ffffff; }
+        .admin-info i { font-size: 1.8rem; color: #8b6cb0; }
+        .admin-role { font-size: 0.7rem; font-weight: 500; color: #7b6b9b; }
+        .admin-name { font-size: 0.9rem; font-weight: 700; color: #3c2e5a; }
+        .logout-btn { background: linear-gradient(145deg, #e2e6ec, #f0f4fa); padding: 8px 20px; border-radius: 40px; font-size: 0.8rem; font-weight: 600; color: #5a3a7a; text-decoration: none; display: flex; align-items: center; gap: 8px; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; transition: 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 1.5rem; }
+        .btn-back { display: inline-flex; align-items: center; gap: 8px; background: #eef0f5; padding: 0.6rem 1.5rem; border-radius: 40px; text-decoration: none; color: #4a3570; font-weight: 600; font-size: 0.85rem; box-shadow: 6px 6px 12px #bebebe, -4px -4px 8px #ffffff; }
+        .btn-back:hover { transform: translateX(-5px); }
+        .btn-tambah { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(145deg, #10b981, #059669); padding: 0.6rem 1.5rem; border-radius: 40px; color: white; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; }
+        .btn-tambah:hover { transform: translateY(-2px); }
+        .page-title { margin-bottom: 1.5rem; }
+        .page-title h1 { font-size: 1.8rem; font-weight: 700; color: #2d2a4a; display: flex; align-items: center; gap: 12px; }
+        .page-title p { color: #5e4a7c; font-size: 0.9rem; margin-top: 5px; }
+        .info-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 2rem; }
+        .info-card { background: #eef0f5; border-radius: 28px; padding: 1.5rem; text-align: center; box-shadow: 12px 12px 24px #bebebe, -8px -8px 18px #ffffff; position: relative; overflow: hidden; }
+        .info-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--color); }
+        .info-card:nth-child(1) { --color: #3b82f6; } .info-card:nth-child(2) { --color: #10b981; } .info-card:nth-child(3) { --color: #f59e0b; }
+        .info-card .info-icon { font-size: 2rem; margin-bottom: 0.8rem; color: #8b6cb0; }
+        .info-card .info-value { font-size: 1.8rem; font-weight: 800; color: #2d2a4a; }
+        .info-card .info-label { font-size: 0.75rem; color: #5a4a7a; font-weight: 500; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #eef0f5; border-radius: 48px; padding: 2rem; width: 90%; max-width: 500px; box-shadow: 20px 20px 40px #bebebe, -10px -10px 20px #ffffff; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-header h3 { font-size: 1.3rem; font-weight: 700; color: #2d2a4a; display: flex; align-items: center; gap: 10px; }
+        .close-modal { background: #eef0f5; border: none; font-size: 1.5rem; cursor: pointer; color: #5a4a7a; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 8px #bebebe, -2px -2px 4px #ffffff; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group select { width: 100%; padding: 12px 18px; border: none; background: #eef0f5; border-radius: 60px; font-size: 0.9rem; box-shadow: inset 3px 3px 6px #bebebe, inset -2px -2px 4px #ffffff; outline: none; }
+        .btn-submit { background: linear-gradient(145deg, #7d64a8, #5a3e7c); color: white; border: none; padding: 10px 28px; border-radius: 60px; font-weight: 600; cursor: pointer; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; width: 100%; }
+        .table-card { background: rgba(248, 244, 255, 0.65); backdrop-filter: blur(8px); border-radius: 32px; padding: 1.8rem; box-shadow: 15px 15px 30px rgba(0,0,0,0.1), -10px -10px 20px rgba(255,255,245,0.7); overflow-x: auto; }
+        .table-card h3 { font-size: 1.2rem; font-weight: 700; color: #2b2b4a; margin-bottom: 1.2rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid rgba(128, 100, 162, 0.15); }
+        th { font-weight: 600; color: #4a3570; font-size: 0.8rem; text-transform: uppercase; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; background: #eef0f5; box-shadow: inset 1px 1px 2px #bebebe, inset -1px -1px 2px #ffffff; }
+        .btn-delete { background: #eef0f5; padding: 5px 14px; border-radius: 40px; font-size: 0.7rem; color: #ef4444; text-decoration: none; font-weight: 600; box-shadow: 4px 4px 8px #bebebe, -2px -2px 4px #ffffff; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: none; }
+        .btn-delete:hover { background: #fee2e2; }
+        @media (max-width: 860px) { .info-cards { grid-template-columns: 1fr; } .top-header { flex-direction: column; text-align: center; } .admin-area, .status-area { width: 100%; justify-content: center; } .main-wrapper { width: 95%; } .nav-bar { flex-direction: column; align-items: stretch; } .btn-back, .btn-tambah { justify-content: center; } }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="top-header">
+        <div class="logo-area"><div class="brand"><span class="cbt-logo">📚</span><div><h2>CBT System</h2><p>SMP MAARIF TEGALAMPEL</p></div></div></div>
+        <div class="status-area"><div class="online-status"><span class="led online"></span><span>ONLINE</span></div></div>
+        <div class="admin-area">
+            <div class="admin-info"><i class="fas fa-user-circle"></i><div><span class="admin-role">Administrator</span><span class="admin-name">Administrator Utama</span></div></div>
+            <a href="logout.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+        </div>
+    </div>
+    
+    <div class="nav-bar">
+        <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+        <button class="btn-tambah" onclick="openModal()"><i class="fas fa-plus-circle"></i> Tugas Pengawas</button>
+    </div>
+    
+    <div class="page-title"><h1><i class="fas fa-eye"></i> Kelola Pengawas</h1><p>Tugaskan guru sebagai pengawas ujian</p></div>
+    
+    <div class="info-cards">
+        <div class="info-card"><div class="info-icon"><i class="fas fa-users"></i></div><div class="info-value" id="totalPengawas">0</div><div class="info-label">TOTAL PENGAWAS</div></div>
+        <div class="info-card"><div class="info-icon"><i class="fas fa-chalkboard"></i></div><div class="info-value" id="totalGuru">0</div><div class="info-label">GURU TERSEDIA</div></div>
+        <div class="info-card"><div class="info-icon"><i class="fas fa-file-alt"></i></div><div class="info-value" id="totalUjian">0</div><div class="info-label">UJIAN TERSEDIA</div></div>
+    </div>
+    
+    <div class="modal" id="modalPengawas">
+        <div class="modal-content">
+            <div class="modal-header"><h3><i class="fas fa-user-plus"></i> Tugaskan Pengawas</h3><button class="close-modal" onclick="closeModal()">&times;</button></div>
+            <form id="formTambahPengawas">
+                <div class="form-group"><select id="pilihGuru" required><option value="">Pilih Guru</option></select></div>
+                <div class="form-group"><select id="pilihUjian" required><option value="">Pilih Ujian</option></select></div>
+                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Tugaskan</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="table-card">
+        <h3><i class="fas fa-list"></i> Daftar Pengawas</h3>
+        <table id="pengawasTable">
+            <thead><tr><th>No</th><th>Guru</th><th>NIP</th><th>Ujian</th><th>Ditugaskan</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+    // Fungsi helper escapeHtml untuk keamanan
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function loadGuruOptions() {
+        try {
+            const res = await fetch(`${API_BASE}/api/guru`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat guru');
+            const guru = await res.json();
+            const select = document.getElementById('pilihGuru');
+            select.innerHTML = '<option value="">Pilih Guru</option>';
+            guru.forEach(g => {
+                select.innerHTML += `<option value="${g.id}">${escapeHtml(g.nama_lengkap)} (${escapeHtml(g.nip)})</option>`;
+            });
+            document.getElementById('totalGuru').innerText = guru.length;
+        } catch(err) {
+            console.error(err);
+            alert('Gagal memuat data guru');
+        }
+    }
+
+    async function loadUjianOptions() {
+        try {
+            const res = await fetch(`${API_BASE}/api/ujian`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat ujian');
+            const ujian = await res.json();
+            const select = document.getElementById('pilihUjian');
+            select.innerHTML = '<option value="">Pilih Ujian</option>';
+            ujian.forEach(u => {
+                select.innerHTML += `<option value="${u.id}">${escapeHtml(u.nama_ujian)}</option>`;
+            });
+            document.getElementById('totalUjian').innerText = ujian.length;
+        } catch(err) {
+            console.error(err);
+            alert('Gagal memuat data ujian');
+        }
+    }
+
+    async function loadPengawas() {
+        try {
+            const res = await fetch(`${API_BASE}/api/pengawas`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Gagal memuat pengawas');
+            const data = await res.json();
+            const tbody = document.querySelector('#pengawasTable tbody');
+            tbody.innerHTML = '';
+            data.forEach((p, i) => {
+                tbody.innerHTML += `<tr>
+                    <td>${i+1}</td>
+                    <td><strong>${escapeHtml(p.guru?.nama_lengkap)}</strong></td>
+                    <td>${escapeHtml(p.guru?.nip)}</td>
+                    <td><span class="badge">${escapeHtml(p.ujian?.nama_ujian)}</span></td>
+                    <td>${new Date(p.ditugaskan_pada).toLocaleDateString('id-ID')}</td>
+                    <td><a href="#" class="btn-delete" data-id="${p.id}"><i class="fas fa-trash-alt"></i> Hapus</a></td>
+                </tr>`;
+            });
+            // Pasang event listener untuk tombol hapus
+            document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (confirm('Batalkan tugas pengawas?')) {
+                        try {
+                            await fetch(`${API_BASE}/api/pengawas/${btn.dataset.id}`, { method: 'DELETE', credentials: 'include' });
+                            loadPengawas();
+                        } catch(err) {
+                            alert('Gagal menghapus pengawas');
+                        }
+                    }
+                });
+            });
+            document.getElementById('totalPengawas').innerText = data.length;
+        } catch(err) {
+            console.error(err);
+            alert('Gagal memuat data pengawas');
+        }
+    }
+
+    document.getElementById('formTambahPengawas').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id_guru = document.getElementById('pilihGuru').value;
+        const id_ujian = document.getElementById('pilihUjian').value;
+        if (!id_guru || !id_ujian) {
+            alert('Pilih guru dan ujian terlebih dahulu');
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/api/pengawas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ id_guru, id_ujian })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Gagal menugaskan');
+            }
+            closeModal();
+            loadPengawas();
+        } catch(err) {
+            alert(err.message);
+        }
+    });
+
+    function openModal() { document.getElementById('modalPengawas').classList.add('active'); }
+    function closeModal() { document.getElementById('modalPengawas').classList.remove('active'); }
+    window.onclick = (e) => { if (e.target === document.getElementById('modalPengawas')) closeModal(); };
+
+    // Inisialisasi
+    loadGuruOptions();
+    loadUjianOptions();
+    loadPengawas();
+</script>
+</body>
+</html>
