@@ -192,7 +192,8 @@
 <script src="config.js"></script>
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const idUjian = urlParams.get('id_ujian');
+    // FIXED: Mendukung parameter 'id' (dari file ujian.html baru) dan tetap aman untuk parameter lama 'id_ujian'
+    const idUjian = urlParams.get('id') || urlParams.get('id_ujian');
     
     let editingSoalId = null;
     let dataSoalLokal = [];
