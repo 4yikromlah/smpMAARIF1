@@ -55,8 +55,14 @@
         th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid rgba(128, 100, 162, 0.15); }
         th { font-weight: 600; color: #4a3570; font-size: 0.8rem; text-transform: uppercase; }
         .badge { display: inline-block; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; background: #eef0f5; box-shadow: inset 1px 1px 2px #bebebe, inset -1px -1px 2px #ffffff; }
+        
+        /* Tombol Aksi */
+        .btn-edit { background: #eef0f5; padding: 5px 14px; border-radius: 40px; font-size: 0.7rem; color: #3b82f6; text-decoration: none; font-weight: 600; box-shadow: 4px 4px 8px #bebebe, -2px -2px 4px #ffffff; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: none; margin-right: 5px; }
+        .btn-edit:hover { background: #dbeafe; }
         .btn-delete { background: #eef0f5; padding: 5px 14px; border-radius: 40px; font-size: 0.7rem; color: #ef4444; text-decoration: none; font-weight: 600; box-shadow: 4px 4px 8px #bebebe, -2px -2px 4px #ffffff; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: none; }
         .btn-delete:hover { background: #fee2e2; }
+        
+        .pass-text { background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 60px; font-family: monospace; font-size: 0.85rem; color: #4a3570; }
         @media (max-width: 860px) { .info-cards { grid-template-columns: 1fr; } .top-header { flex-direction: column; text-align: center; } .admin-area, .status-area { width: 100%; justify-content: center; } .main-wrapper { width: 95%; } .nav-bar { flex-direction: column; align-items: stretch; } .btn-back, .btn-tambah { justify-content: center; } }
     </style>
 </head>
@@ -88,26 +94,24 @@
         <div class="info-card"><div class="info-icon"><i class="fas fa-chalkboard"></i></div><div class="info-value" id="totalKelas">0</div><div class="info-label">TOTAL KELAS</div></div>
     </div>
     
-    <!-- Modal Tambah Siswa -->
     <div class="modal" id="modalSiswa">
         <div class="modal-content">
-            <div class="modal-header"><h3><i class="fas fa-user-plus"></i> Tambah Siswa Baru</h3><button class="close-modal" onclick="closeModal()">&times;</button></div>
+            <div class="modal-header"><h3 id="modalTitle"><i class="fas fa-user-plus"></i> Tambah Siswa Baru</h3><button class="close-modal" onclick="closeModal()">&times;</button></div>
             <form id="formTambahSiswa">
                 <div class="form-group"><input type="text" name="nama" placeholder="Nama Lengkap" required></div>
                 <div class="form-group"><input type="text" name="nis" placeholder="NIS" required></div>
                 <div class="form-group"><input type="text" name="username" placeholder="Username" required></div>
-                <div class="form-group"><input type="password" name="password" placeholder="Password" required></div>
+                <div class="form-group"><input type="text" name="password" placeholder="Password" required></div>
                 <div class="form-group">
                     <select id="kelasSelect" name="kelas" required>
                         <option value="">Pilih Kelas</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Simpan Siswa</button>
+                <button type="submit" class="btn-submit" id="btnSubmitForm"><i class="fas fa-save"></i> Simpan Siswa</button>
             </form>
         </div>
     </div>
     
-    <!-- Modal Import Excel -->
     <div class="modal" id="modalImport">
         <div class="modal-content">
             <div class="modal-header"><h3><i class="fas fa-file-excel"></i> Import Siswa dari Excel</h3><button class="close-modal" onclick="closeImportModal()">&times;</button></div>
@@ -131,7 +135,7 @@
     <div class="table-card">
         <h3><i class="fas fa-list"></i> Daftar Siswa</h3>
         <table id="siswaTable">
-            <thead><tr><th>No</th><th>NIS</th><th>Username</th><th>Nama Lengkap</th><th>Kelas</th><th>Terdaftar</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>No</th><th>NIS</th><th>Username</th><th>Password</th><th>Nama Lengkap</th><th>Kelas</th><th>Terdaftar</th><th>Aksi</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
@@ -139,6 +143,9 @@
 
 <script src="config.js"></script>
 <script>
+    let editingSiswaId = null; // Menyimpan ID siswa jika sedang dalam mode edit
+    let dataSiswaLokal = [];   // Wadah data siswa lokal agar bisa dibaca saat klik tombol edit
+
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
@@ -154,21 +161,39 @@
             const res = await fetch(`${API_BASE}/api/siswa`, { credentials: 'include' });
             if (!res.ok) throw new Error('Gagal memuat data siswa');
             const siswaList = await res.json();
+            dataSiswaLokal = siswaList; // Simpan data siswa ke variabel lokal
+            
             const tbody = document.querySelector('#siswaTable tbody');
             tbody.innerHTML = '';
             let kelasSet = new Set();
+            
             siswaList.forEach((s, i) => {
                 kelasSet.add(s.kelas?.nama_kelas);
                 tbody.innerHTML += `<tr>
                     <td>${i+1}</td>
                     <td>${escapeHtml(s.nis)}</td>
                     <td>${escapeHtml(s.username)}</td>
+                    <td><span class="pass-text">${escapeHtml(s.password || '-')}</span></td>
                     <td>${escapeHtml(s.nama_lengkap)}</td>
                     <td><span class="badge">${escapeHtml(s.kelas?.nama_kelas || '-')}</span></td>
                     <td>${new Date(s.created_at).toLocaleDateString('id-ID')}</td>
-                    <td><button class="btn-delete" data-id="${s.id}"><i class="fas fa-trash-alt"></i> Hapus</button></td>
+                    <td>
+                        <button class="btn-edit" data-id="${s.id}"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn-delete" data-id="${s.id}"><i class="fas fa-trash-alt"></i> Hapus</button>
+                    </td>
                 </tr>`;
             });
+            
+            // Event Listener Tombol Edit
+            document.querySelectorAll('.btn-edit[data-id]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const siswa = dataSiswaLokal.find(s => s.id == btn.dataset.id);
+                    if (siswa) openEditModal(siswa);
+                });
+            });
+
+            // Event Listener Tombol Hapus
             document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     e.preventDefault();
@@ -182,6 +207,7 @@
                     }
                 });
             });
+            
             document.getElementById('totalSiswa').innerText = siswaList.length;
             document.getElementById('siswaAktif').innerText = siswaList.length;
             document.getElementById('totalKelas').innerText = kelasSet.size;
@@ -204,6 +230,7 @@
         }
     }
 
+    // Aksi Form Tambah / Update Siswa
     document.getElementById('formTambahSiswa').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nama = document.querySelector('input[name="nama"]').value.trim();
@@ -211,20 +238,31 @@
         const username = document.querySelector('input[name="username"]').value.trim();
         const password = document.querySelector('input[name="password"]').value;
         const id_kelas = document.getElementById('kelasSelect').value;
+        
         if (!nama || !nis || !username || !password || !id_kelas) {
             alert('Semua field harus diisi');
             return;
         }
+
+        let url = `${API_BASE}/api/siswa`;
+        let method = 'POST';
+
+        // Jika sedang mode edit, ubah URL dan Method ke PUT
+        if (editingSiswaId) {
+            url = `${API_BASE}/api/siswa/${editingSiswaId}`;
+            method = 'PUT';
+        }
+
         try {
-            const res = await fetch(`${API_BASE}/api/siswa`, {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({ nama_lengkap: nama, nis, username, password, id_kelas })
             });
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error || 'Gagal menambah siswa');
+                throw new Error(err.error || 'Gagal menyimpan data siswa');
             }
             closeModal();
             loadSiswa();
@@ -234,13 +272,38 @@
         }
     });
 
-    function openModal() { document.getElementById('modalSiswa').classList.add('active'); }
+    // Buka Modal Mode Tambah Siswa Baru
+    function openModal() { 
+        editingSiswaId = null;
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Tambah Siswa Baru';
+        document.getElementById('btnSubmitForm').innerHTML = '<i class="fas fa-save"></i> Simpan Siswa';
+        document.getElementById('formTambahSiswa').reset();
+        document.getElementById('modalSiswa').classList.add('active'); 
+    }
+
+    // Buka Modal Mode Edit Siswa Lama
+    function openEditModal(siswa) {
+        editingSiswaId = siswa.id;
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit Data Siswa';
+        document.getElementById('btnSubmitForm').innerHTML = '<i class="fas fa-save"></i> Perbarui Siswa';
+        
+        // Isikan data siswa ke form input modal
+        document.querySelector('input[name="nama"]').value = siswa.nama_lengkap;
+        document.querySelector('input[name="nis"]').value = siswa.nis;
+        document.querySelector('input[name="username"]').value = siswa.username;
+        document.querySelector('input[name="password"]').value = siswa.password || '';
+        document.getElementById('kelasSelect').value = siswa.id_kelas || '';
+        
+        document.getElementById('modalSiswa').classList.add('active');
+    }
+
     function closeModal() { document.getElementById('modalSiswa').classList.remove('active'); }
 
     function openImportModal() {
         document.getElementById('modalImport').classList.add('active');
         document.getElementById('importResult').innerHTML = '';
     }
+    
     function closeImportModal() { document.getElementById('modalImport').classList.remove('active'); }
 
     async function downloadTemplate() {
