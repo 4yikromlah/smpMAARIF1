@@ -388,34 +388,27 @@ app.delete('/api/ujian/:id', requireAdmin, async (req, res) => {
 
 // Soal
 // PERBAIKAN: API untuk Upload Gambar dari Text Editor (Soal & Opsi) ke Supabase Storage
-app.post('/api/soal/upload-image', requireAdmin, upload.single('image'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'File gambar tidak ditemukan' });
-    try {
-        const fileExt = req.file.originalname.split('.').pop();
-        // Membuat nama file acak yang unik untuk menghindari tabrakan nama file
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-        const filePath = `content/${fileName}`;
-
-        // Mengunggah file buffer ke bucket 'soal-images'
-        const { data, error } = await supabase.storage
-            .from('soal-images')
-            .upload(filePath, req.file.buffer, {
-                contentType: req.file.mimetype,
-                upsert: true
-            });
-
-        if (error) return res.status(500).json({ error: error.message });
-
-        // Mendapatkan Public URL dari gambar yang diunggah
-        const { data: publicUrlData } = supabase.storage
-            .from('soal-images')
-            .getPublicUrl(filePath);
-
-        // Kembalikan URL untuk disisipkan ke Text Editor
-        res.json({ success: true, url: publicUrlData.publicUrl });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+app.get('/api/soal/ujian/:idUjian', requireAdmin, async (req, res) => {
+    const { data, error } = await supabase.from('soal').select('*').eq('id_ujian', req.params.idUjian).order('id');
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+});
+app.post('/api/soal', requireAdmin, async (req, res) => {
+    const { id_ujian, jenis_soal, pertanyaan, poin, pilihan_json, jawaban_json } = req.body;
+    const { data, error } = await supabase.from('soal').insert([{ id_ujian, jenis_soal, pertanyaan, poin, pilihan_json, jawaban_json }]).select();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data[0]);
+});
+app.put('/api/soal/:id', requireAdmin, async (req, res) => {
+    const updates = req.body;
+    const { data, error } = await supabase.from('soal').update(updates).eq('id', req.params.id).select();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data[0]);
+});
+app.delete('/api/soal/:id', requireAdmin, async (req, res) => {
+    const { error } = await supabase.from('soal').delete().eq('id', req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
 });
 
 // Pengawas
