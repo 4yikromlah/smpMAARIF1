@@ -127,26 +127,67 @@ app.get('/api/guru/dashboard', requireGuru, async (req, res) => {
 });
 
 // Siswa
+// ========== SEKSI SISWA (SUDAH DIPERBAIKI) ==========
+
 app.get('/api/siswa', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('siswa').select('*, kelas: id_kelas (nama_kelas)').order('id');
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
+
 app.post('/api/siswa', requireAdmin, async (req, res) => {
     const { nis, username, password, nama_lengkap, id_kelas } = req.body;
     if (!password || password.length < 4) return res.status(400).json({ error: 'Password minimal 4 karakter' });
     const { data: existing } = await supabase.from('siswa').select('nis, username').or(`nis.eq.${nis},username.eq.${username}`);
     if (existing && existing.length) return res.status(400).json({ error: 'NIS atau Username sudah terdaftar' });
+    
     const hashed = await bcrypt.hash(password, 10);
-    const { data, error } = await supabase.from('siswa').insert([{ nis, username, password: hashed, nama_lengkap, id_kelas }]).select();
+    
+    // PERBAIKAN 1: Menyimpan teks asli ke password_plain saat input manual
+    const { data, error } = await supabase.from('siswa').insert([{ 
+        nis, 
+        username, 
+        password: hashed, 
+        password_plain: password, 
+        nama_lengkap, 
+        id_kelas 
+    }]).select();
+    
     if (error) return res.status(500).json({ error: error.message });
     res.json(data[0]);
 });
+
+// PERBAIKAN STABIL (Paling Utama): Menyediakan API route untuk EDIT/UPDATE siswa
+app.put('/api/siswa/:id', requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { nis, username, password, nama_lengkap, id_kelas } = req.body;
+    
+    try {
+        const updateData = { nis, username, nama_lengkap, id_kelas };
+        
+        // Jika kotak password di form diisi/diubah, lakukan enkripsi & simpan plain teksnya
+        if (password && password.trim() !== '') {
+            updateData.password = await bcrypt.hash(password, 10);
+            updateData.password_plain = password;
+        }
+        
+        const { data, error } = await supabase.from('siswa').update(updateData).eq('id', id).select();
+        
+        if (error) return res.status(500).json({ error: error.message });
+        if (!data || data.length === 0) return res.status(404).json({ error: 'Siswa tidak ditemukan' });
+        
+        res.json(data[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/siswa/:id', requireAdmin, async (req, res) => {
     const { error } = await supabase.from('siswa').delete().eq('id', req.params.id);
     if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
+
 app.get('/api/siswa/template', requireAdmin, async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Template Siswa');
@@ -163,6 +204,7 @@ app.get('/api/siswa/template', requireAdmin, async (req, res) => {
     await workbook.xlsx.write(res);
     res.end();
 });
+
 app.post('/api/siswa/import', requireAdmin, upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'File tidak ditemukan' });
     try {
@@ -189,8 +231,18 @@ app.post('/api/siswa/import', requireAdmin, upload.single('file'), async (req, r
             if (!id_kelas) { failedCount++; errors.push(`Kelas "${row.nama_kelas}" tidak ditemukan`); continue; }
             const { data: existing } = await supabase.from('siswa').select('nis, username').or(`nis.eq.${row.nis},username.eq.${row.username}`);
             if (existing && existing.length) { failedCount++; errors.push(`Duplikat NIS/Username: ${row.nis}`); continue; }
+            
             const hashed = await bcrypt.hash(row.password, 10);
-            const { error } = await supabase.from('siswa').insert({ nis: row.nis, nama_lengkap: row.nama_lengkap, username: row.username, password: hashed, id_kelas });
+            
+            // PERBAIKAN 2: Menyimpan teks asli ke password_plain saat Import via Excel
+            const { error } = await supabase.from('siswa').insert({ 
+                nis: row.nis, 
+                nama_lengkap: row.nama_lengkap, 
+                username: row.username, 
+                password: hashed, 
+                password_plain: row.password, 
+                id_kelas 
+            });
             if (error) { failedCount++; errors.push(error.message); } else successCount++;
         }
         res.json({ success: true, successCount, failedCount, errors: errors.slice(0,10) });
