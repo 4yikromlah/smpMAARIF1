@@ -84,10 +84,21 @@
         .quill-loading-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(238,240,245,0.7); border-radius:28px; justify-content:center; align-items:center; flex-direction:column; gap:10px; z-index:10; font-size:0.85rem; color:#5a4a7a; font-weight:600; }
         .quill-loading-overlay.active { display: flex; }
         
-        .pilihan-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1rem; }
+        .pilihan-grid { display: flex; flex-direction: column; gap: 16px; margin-bottom: 1rem; }
         .radio-group { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 8px 0; }
         .radio-group label { display: inline-flex; align-items: center; gap: 6px; margin: 0; cursor: pointer; font-weight: normal; }
         .radio-group input { width: auto; box-shadow: none; margin: 0; }
+
+        /* Quill untuk pilihan jawaban */
+        .pilihan-quill-wrapper { background: #eef0f5; border-radius: 20px; padding: 4px; box-shadow: 4px 4px 10px #bebebe, -4px -4px 10px #ffffff; position: relative; }
+        .pilihan-quill-wrapper .ql-toolbar.ql-snow { border: none; border-bottom: 1px solid rgba(128,100,162,0.1); border-radius: 16px 16px 0 0; background: transparent; padding: 4px 8px; }
+        .pilihan-quill-wrapper .ql-container.ql-snow { border: none; border-radius: 0 0 16px 16px; }
+        .pilihan-quill-wrapper .ql-container { min-height: 60px; font-size: 0.9rem; }
+        .pilihan-quill-wrapper .ql-editor { min-height: 60px; padding: 8px 12px; }
+        .pilihan-quill-wrapper.dragover { border: 2px dashed #10b981; background: rgba(16,185,129,0.04); }
+        .pilihan-quill-label { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600; color: #5a4a7a; margin-bottom: 6px; margin-left: 8px; }
+        .pilihan-upload-loading { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(238,240,245,0.8); border-radius: 20px; justify-content: center; align-items: center; gap: 8px; z-index: 10; font-size: 0.78rem; color: #5a4a7a; font-weight: 600; }
+        .pilihan-upload-loading.active { display: flex; }
         .btn-submit { background: linear-gradient(145deg, #7d64a8, #5a3e7c); color: white; border: none; padding: 14px 28px; border-radius: 60px; font-weight: 600; cursor: pointer; box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff; width: 100%; margin-top: 1rem; font-size: 1rem; transition: 0.2s; }
         .btn-submit:hover { transform: translateY(-2px); background: #6f5298; }
         .btn-generate { background: linear-gradient(145deg, #8b5cf6, #7c3aed); }
@@ -178,17 +189,73 @@
                     </div>
                     <div id="form-pilihan_ganda">
                         <div class="pilihan-grid">
-                            <div class="form-group"><label>A. Pilihan A</label><textarea name="pilihan_a" rows="2" placeholder="Pilihan A"></textarea></div>
-                            <div class="form-group"><label>B. Pilihan B</label><textarea name="pilihan_b" rows="2" placeholder="Pilihan B"></textarea></div>
-                            <div class="form-group"><label>C. Pilihan C</label><textarea name="pilihan_c" rows="2" placeholder="Pilihan C"></textarea></div>
-                            <div class="form-group"><label>D. Pilihan D</label><textarea name="pilihan_d" rows="2" placeholder="Pilihan D"></textarea></div>
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#3b82f6;font-size:0.6rem;"></i> A. Pilihan A</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pg-a">
+                                    <div class="pilihan-upload-loading" id="loading-pg-a"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pg-a"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#10b981;font-size:0.6rem;"></i> B. Pilihan B</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pg-b">
+                                    <div class="pilihan-upload-loading" id="loading-pg-b"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pg-b"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#f59e0b;font-size:0.6rem;"></i> C. Pilihan C</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pg-c">
+                                    <div class="pilihan-upload-loading" id="loading-pg-c"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pg-c"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#ef4444;font-size:0.6rem;"></i> D. Pilihan D</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pg-d">
+                                    <div class="pilihan-upload-loading" id="loading-pg-d"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pg-d"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group"><label>Jawaban Benar</label><div class="radio-group"><label><input type="radio" name="jawaban" value="A" checked> A</label><label><input type="radio" name="jawaban" value="B"> B</label><label><input type="radio" name="jawaban" value="C"> C</label><label><input type="radio" name="jawaban" value="D"> D</label></div></div>
                     </div>
                     <div id="form-benar_salah" style="display:none;"><div class="form-group"><label>Jawaban</label><div class="radio-group"><label><input type="radio" name="jawaban_bs" value="benar" checked> ✅ Benar</label><label><input type="radio" name="jawaban_bs" value="salah"> ❌ Salah</label></div></div></div>
                     <div id="form-essay" style="display:none;"><div class="form-group"><p style="color:#7d6b9e; font-size:0.8rem; padding:0.5rem;">Essay akan dinilai manual oleh guru pengawas.</p></div></div>
                     <div id="form-menjodohkan" style="display:none;"><div id="pasangan-container"></div><button type="button" id="tambah-pasangan" style="margin-top:10px; background:#eef0f5; padding:8px 16px; border-radius:40px; border:none; cursor:pointer; font-weight:600; box-shadow: 4px 4px 8px #bebebe, -2px -2px 4px #ffffff;">+ Tambah Pasangan</button></div>
-                    <div id="form-pilihan_ganda_komplek" style="display:none;"><div class="pilihan-grid"><div class="form-group"><label>A. Pilihan A</label><textarea name="pilihan_komplek_a" rows="2"></textarea></div><div class="form-group"><label>B. Pilihan B</label><textarea name="pilihan_komplek_b" rows="2"></textarea></div><div class="form-group"><label>C. Pilihan C</label><textarea name="pilihan_komplek_c" rows="2"></textarea></div><div class="form-group"><label>D. Pilihan D</label><textarea name="pilihan_komplek_d" rows="2"></textarea></div></div><div class="form-group"><label>Jawaban Benar (centang semua yang benar)</label><div class="radio-group"><label><input type="checkbox" name="jawaban_komplek" value="A"> A</label><label><input type="checkbox" name="jawaban_komplek" value="B"> B</label><label><input type="checkbox" name="jawaban_komplek" value="C"> C</label><label><input type="checkbox" name="jawaban_komplek" value="D"> D</label></div></div></div>
+                    <div id="form-pilihan_ganda_komplek" style="display:none;">
+                        <div class="pilihan-grid">
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#3b82f6;font-size:0.6rem;"></i> A. Pilihan A</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pgk-a">
+                                    <div class="pilihan-upload-loading" id="loading-pgk-a"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pgk-a"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#10b981;font-size:0.6rem;"></i> B. Pilihan B</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pgk-b">
+                                    <div class="pilihan-upload-loading" id="loading-pgk-b"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pgk-b"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#f59e0b;font-size:0.6rem;"></i> C. Pilihan C</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pgk-c">
+                                    <div class="pilihan-upload-loading" id="loading-pgk-c"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pgk-c"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="pilihan-quill-label"><i class="fas fa-circle" style="color:#ef4444;font-size:0.6rem;"></i> D. Pilihan D</div>
+                                <div class="pilihan-quill-wrapper" id="wrapper-pgk-d">
+                                    <div class="pilihan-upload-loading" id="loading-pgk-d"><i class="fas fa-spinner fa-spin"></i> Mengunggah...</div>
+                                    <div id="quill-pgk-d"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Jawaban Benar (centang semua yang benar)</label><div class="radio-group"><label><input type="checkbox" name="jawaban_komplek" value="A"> A</label><label><input type="checkbox" name="jawaban_komplek" value="B"> B</label><label><input type="checkbox" name="jawaban_komplek" value="C"> C</label><label><input type="checkbox" name="jawaban_komplek" value="D"> D</label></div></div>
+                    </div>
                     <div class="form-group"><label><i class="fas fa-coins"></i> Poin</label><input type="number" name="poin" value="1" min="1"></div>
                 </div>
                 <div id="aiForm" class="ai-form-container">
@@ -214,25 +281,30 @@
 <script>
     const ujianId = new URLSearchParams(location.search).get('id');
     let currentJenis = 'pilihan_ganda';
-    let quill = null;
-    let localSoalList = []; 
-    let currentSoalId = null; 
+    let quill = null;         // Editor pertanyaan utama
+    let quillPG = {};         // Editor pilihan ganda: { A, B, C, D }
+    let quillPGK = {};        // Editor PG kompleks: { A, B, C, D }
+    let localSoalList = [];
+    let currentSoalId = null;
+
+    // ─── Konfigurasi toolbar minimal untuk pilihan jawaban ───────────────────
+    const PILIHAN_TOOLBAR = [
+        ['bold', 'italic', 'underline'],
+        ['image']
+    ];
 
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+        return str.replace(/[&<>"']/g, function(m) {
+            return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m];
         });
     }
 
-    // Fungsi Utama: Mengirim File Gambar ke Backend & Menyuntikkannya ke Editor
-    async function uploadImageToServer(file) {
-        const overlay = document.getElementById('editorLoading');
-        overlay.classList.add('active');
-        
+    // ─── Upload gambar ke server & sisipkan ke editor Quill ──────────────────
+    async function uploadImageToServer(file, targetQuill, loadingId) {
+        const overlay = document.getElementById(loadingId);
+        if (overlay) overlay.classList.add('active');
+
         const formData = new FormData();
         formData.append('image', file);
 
@@ -244,116 +316,312 @@
             });
             if (!res.ok) throw new Error('Gagal mengunggah gambar ke server');
             const data = await res.json();
-            
+
             if (data.url) {
-                const range = quill.getSelection(true);
-                quill.insertEmbed(range.index, 'image', data.url);
-                quill.setSelection(range.index + 1);
+                const range = targetQuill.getSelection(true) || { index: targetQuill.getLength() - 1 };
+                targetQuill.insertEmbed(range.index, 'image', data.url);
+                targetQuill.setSelection(range.index + 1);
             } else {
-                alert('Gagal mendapatkan URL gambar dari respon server.');
+                alert('Gagal mendapatkan URL gambar dari server.');
             }
         } catch (err) {
             console.error(err);
-            alert('Kesalahan sistem saat mengunggah gambar: ' + err.message);
+            alert('Kesalahan saat mengunggah gambar: ' + err.message);
         } finally {
-            overlay.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
         }
     }
 
-    // Mengonfigurasi Event Handler Gambar (Ikon Klik, Drag & Drop, Paste Clipboard)
-    function setupQuillImageHandlers() {
-        // 1. Override Handler Klik Ikon Image Bawaan Toolbar
-        quill.getModule('toolbar').addHandler('image', () => {
+    // ─── Pasang semua handler gambar pada sebuah instance Quill ─────────────
+    function setupImageHandlers(quillInstance, wrapperId, loadingId) {
+        // 1. Klik ikon gambar di toolbar
+        quillInstance.getModule('toolbar').addHandler('image', () => {
             const input = document.createElement('input');
-            input.setAttribute('type', 'file');
-            input.setAttribute('accept', 'image/*');
+            input.type = 'file';
+            input.accept = 'image/*';
             input.click();
             input.onchange = async () => {
-                const file = input.files[0];
-                if (file) await uploadImageToServer(file);
+                if (input.files[0]) await uploadImageToServer(input.files[0], quillInstance, loadingId);
             };
         });
 
-        // 2. Integrasi Fitur Paste Gambar langsung dari Clipboard (Ctrl + V)
-        quill.root.addEventListener('paste', async (e) => {
-            const clipboardData = e.clipboardData || window.clipboardData;
-            if (!clipboardData || !clipboardData.items) return;
-            
-            for (let i = 0; i < clipboardData.items.length; i++) {
-                const item = clipboardData.items[i];
-                if (item.type.indexOf('image') !== -1) {
-                    e.preventDefault(); // Batalkan paste default berupa teks/base64 blob
+        // 2. Paste gambar dari clipboard (Ctrl+V)
+        quillInstance.root.addEventListener('paste', async (e) => {
+            const items = (e.clipboardData || window.clipboardData)?.items;
+            if (!items) return;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
                     const file = item.getAsFile();
-                    if (file) await uploadImageToServer(file);
+                    if (file) await uploadImageToServer(file, quillInstance, loadingId);
+                    break;
                 }
             }
         });
 
-        // 3. Integrasi Fitur Drag & Drop File Gambar langsung ke Area Editor
-        const wrapper = document.getElementById('editorWrapper');
-        wrapper.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            wrapper.classList.add('dragover');
-        });
-        wrapper.addEventListener('dragleave', () => {
-            wrapper.classList.remove('dragover');
-        });
+        // 3. Drag & drop file gambar ke area editor
+        const wrapper = document.getElementById(wrapperId);
+        if (!wrapper) return;
+        wrapper.addEventListener('dragover', (e) => { e.preventDefault(); wrapper.classList.add('dragover'); });
+        wrapper.addEventListener('dragleave', () => wrapper.classList.remove('dragover'));
         wrapper.addEventListener('drop', async (e) => {
             e.preventDefault();
             wrapper.classList.remove('dragover');
-            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-                const file = e.dataTransfer.files[0];
-                if (file.type.indexOf('image') !== -1) {
-                    await uploadImageToServer(file);
-                } else {
-                    alert('Hanya file gambar yang diizinkan untuk diletakkan di sini.');
-                }
+            const file = e.dataTransfer?.files?.[0];
+            if (file && file.type.startsWith('image/')) {
+                await uploadImageToServer(file, quillInstance, loadingId);
+            } else if (file) {
+                alert('Hanya file gambar yang diizinkan.');
             }
         });
     }
 
+    // ─── Buat satu instance Quill pilihan jawaban ────────────────────────────
+    function createPilihanQuill(editorId, wrapperId, loadingId, placeholder) {
+        const q = new Quill('#' + editorId, {
+            theme: 'snow',
+            placeholder: placeholder || 'Tulis pilihan atau tempel/seret gambar...',
+            modules: { toolbar: PILIHAN_TOOLBAR }
+        });
+        setupImageHandlers(q, wrapperId, loadingId);
+        return q;
+    }
+
+    // ─── Inisialisasi editor pertanyaan utama ────────────────────────────────
     function initQuill() {
         if (!quill) {
             quill = new Quill('#quillEditor', {
                 theme: 'snow',
                 placeholder: 'Tulis pertanyaan atau seret/tempel gambar di sini...',
-                modules: { 
+                modules: {
                     toolbar: [
-                        ['bold', 'italic', 'underline'], 
-                        [{ list: 'ordered'}, { list: 'bullet' }], 
+                        ['bold', 'italic', 'underline'],
+                        [{ list: 'ordered' }, { list: 'bullet' }],
                         ['image', 'clean']
-                    ] 
+                    ]
                 }
             });
-            setupQuillImageHandlers();
+            setupImageHandlers(quill, 'editorWrapper', 'editorLoading');
         }
     }
 
+    // ─── Inisialisasi semua editor pilihan (hanya sekali) ───────────────────
+    function initPilihanEditors() {
+        // Pilihan Ganda
+        if (!quillPG.A) {
+            quillPG.A = createPilihanQuill('quill-pg-a', 'wrapper-pg-a', 'loading-pg-a', 'Pilihan A...');
+            quillPG.B = createPilihanQuill('quill-pg-b', 'wrapper-pg-b', 'loading-pg-b', 'Pilihan B...');
+            quillPG.C = createPilihanQuill('quill-pg-c', 'wrapper-pg-c', 'loading-pg-c', 'Pilihan C...');
+            quillPG.D = createPilihanQuill('quill-pg-d', 'wrapper-pg-d', 'loading-pg-d', 'Pilihan D...');
+        }
+        // PG Kompleks
+        if (!quillPGK.A) {
+            quillPGK.A = createPilihanQuill('quill-pgk-a', 'wrapper-pgk-a', 'loading-pgk-a', 'Pilihan A...');
+            quillPGK.B = createPilihanQuill('quill-pgk-b', 'wrapper-pgk-b', 'loading-pgk-b', 'Pilihan B...');
+            quillPGK.C = createPilihanQuill('quill-pgk-c', 'wrapper-pgk-c', 'loading-pgk-c', 'Pilihan C...');
+            quillPGK.D = createPilihanQuill('quill-pgk-d', 'wrapper-pgk-d', 'loading-pgk-d', 'Pilihan D...');
+        }
+    }
+
+    // ─── Reset semua konten editor pilihan ───────────────────────────────────
+    function resetPilihanEditors() {
+        ['A','B','C','D'].forEach(k => {
+            if (quillPG[k])  quillPG[k].root.innerHTML  = '';
+            if (quillPGK[k]) quillPGK[k].root.innerHTML = '';
+        });
+    }
+
+    // ─── Baca HTML dari editor pilihan ───────────────────────────────────────
+    function getPilihanHTML(map) {
+        const result = {};
+        ['A','B','C','D'].forEach(k => {
+            const html = map[k]?.root.innerHTML || '';
+            result[k] = (html === '<p><br></p>' || html === '') ? '' : html;
+        });
+        return result;
+    }
+
+    // ─── Tampilkan / sembunyikan form berdasarkan jenis soal ─────────────────
+    function pilihJenis(jenis) {
+        currentJenis = jenis;
+        document.getElementById('jenis_soal').value = jenis;
+        document.querySelectorAll('.jenis-card').forEach(c => c.classList.remove('selected'));
+        const card = document.querySelector(`.jenis-card[data-jenis="${jenis}"]`);
+        if (card) card.classList.add('selected');
+
+        ['form-pilihan_ganda','form-benar_salah','form-essay','form-menjodohkan','form-pilihan_ganda_komplek']
+            .forEach(id => document.getElementById(id).style.display = 'none');
+
+        if (jenis === 'pilihan_ganda') {
+            document.getElementById('form-pilihan_ganda').style.display = 'block';
+            initPilihanEditors();
+        } else if (jenis === 'benar_salah') {
+            document.getElementById('form-benar_salah').style.display = 'block';
+        } else if (jenis === 'essay') {
+            document.getElementById('form-essay').style.display = 'block';
+        } else if (jenis === 'menjodohkan') {
+            document.getElementById('form-menjodohkan').style.display = 'block';
+            const container = document.getElementById('pasangan-container');
+            if (container.children.length === 0) tambahPasanganRow('', '');
+        } else if (jenis === 'pilihan_ganda_komplek') {
+            document.getElementById('form-pilihan_ganda_komplek').style.display = 'block';
+            initPilihanEditors();
+        }
+    }
+
+    function setMode(mode) {
+        const manual = document.getElementById('manualForm');
+        const ai     = document.getElementById('aiForm');
+        const btnM   = document.getElementById('modeManual');
+        const btnA   = document.getElementById('modeAI');
+        if (mode === 'manual') {
+            btnM.classList.add('active');    btnA.classList.remove('active');
+            manual.classList.remove('hidden'); ai.classList.remove('active');
+            document.getElementById('submitBtn').style.display = 'block';
+        } else {
+            btnA.classList.add('active');    btnM.classList.remove('active');
+            manual.classList.add('hidden');  ai.classList.add('active');
+            document.getElementById('submitBtn').style.display = 'none';
+        }
+    }
+
+    function openTambahModal() {
+        currentSoalId = null;
+        document.getElementById('modalTambah').classList.add('active');
+        document.querySelector('.modal-header h2').innerHTML = `<i class="fas fa-plus-circle"></i> Tambah Soal Baru`;
+        document.querySelector('.modal-header p').innerText  = "Isi pertanyaan dan pilihan jawaban";
+        document.getElementById('formTambahSoal').reset();
+        document.getElementById('pasangan-container').innerHTML = '';
+
+        initQuill();
+        quill.root.innerHTML = '';
+        resetPilihanEditors();
+        pilihJenis('pilihan_ganda');
+        setMode('manual');
+    }
+
+    function closeTambahModal() {
+        document.getElementById('modalTambah').classList.remove('active');
+    }
+
+    function tambahPasanganRow(pernyataan = '', pasangan = '') {
+        const container = document.getElementById('pasangan-container');
+        const newItem   = document.createElement('div');
+        newItem.className = 'pasangan-item';
+        newItem.style.cssText = 'display:flex; gap:10px; margin-bottom:10px; align-items:center;';
+        newItem.innerHTML = `
+            <input type="text" placeholder="Pernyataan" value="${escapeHtml(pernyataan)}" style="flex:1; padding:10px; border-radius:40px; border:none; background:#eef0f5; box-shadow:inset 2px 2px 5px #bebebe;">
+            <span style="display:flex; align-items:center; color:#8b6cb0;">⟷</span>
+            <input type="text" placeholder="Pasangan" value="${escapeHtml(pasangan)}" style="flex:1; padding:10px; border-radius:40px; border:none; background:#eef0f5; box-shadow:inset 2px 2px 5px #bebebe;">
+            <button type="button" class="hapus-pasangan" style="background:#ef4444; color:white; border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(newItem);
+        newItem.querySelector('.hapus-pasangan').addEventListener('click', () => newItem.remove());
+    }
+
+    document.getElementById('tambah-pasangan').addEventListener('click', () => tambahPasanganRow('', ''));
+
+    // ─── Submit / simpan soal ────────────────────────────────────────────────
+    document.getElementById('formTambahSoal').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const jenis = document.getElementById('jenis_soal').value;
+        let jawaban_json = null, pilihan_json = null;
+
+        // Pertanyaan utama
+        let pertanyaan = '';
+        if (quill) {
+            pertanyaan = quill.root.innerHTML;
+            document.getElementById('pertanyaanHidden').value = pertanyaan;
+        }
+        const poin = document.querySelector('#manualForm input[name="poin"]').value || 1;
+        if (!pertanyaan || pertanyaan === '<p><br></p>') return alert('Pertanyaan wajib diisi');
+
+        if (jenis === 'pilihan_ganda') {
+            initPilihanEditors();
+            const p = getPilihanHTML(quillPG);
+            if (!p.A || !p.B || !p.C || !p.D) return alert('Semua pilihan jawaban (A–D) wajib diisi');
+            pilihan_json  = p;
+            jawaban_json  = document.querySelector('input[name="jawaban"]:checked')?.value;
+            if (!jawaban_json) return alert('Pilih salah satu jawaban benar');
+
+        } else if (jenis === 'benar_salah') {
+            jawaban_json = document.querySelector('input[name="jawaban_bs"]:checked')?.value;
+
+        } else if (jenis === 'essay') {
+            jawaban_json = null;
+
+        } else if (jenis === 'menjodohkan') {
+            const pairs = [];
+            document.querySelectorAll('.pasangan-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                if (inputs[0]?.value.trim() && inputs[1]?.value.trim())
+                    pairs.push({ pernyataan: inputs[0].value.trim(), pasangan: inputs[1].value.trim() });
+            });
+            if (pairs.length === 0) return alert('Tambahkan minimal satu pasang pernyataan-pasangan');
+            pilihan_json = { pairs };
+            jawaban_json = pairs;
+
+        } else if (jenis === 'pilihan_ganda_komplek') {
+            initPilihanEditors();
+            const p = getPilihanHTML(quillPGK);
+            if (!p.A || !p.B || !p.C || !p.D) return alert('Semua pilihan jawaban (A–D) wajib diisi');
+            pilihan_json = p;
+            const checked = [];
+            document.querySelectorAll('#form-pilihan_ganda_komplek input[name="jawaban_komplek"]:checked').forEach(cb => checked.push(cb.value));
+            if (checked.length === 0) return alert('Pilih minimal satu jawaban benar untuk PG Kompleks');
+            jawaban_json = checked;
+        }
+
+        try {
+            const url    = currentSoalId ? `${API_BASE}/api/soal/${currentSoalId}` : `${API_BASE}/api/soal`;
+            const method = currentSoalId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    id_ujian:    parseInt(ujianId),
+                    jenis_soal:  jenis,
+                    pertanyaan,
+                    poin:        parseInt(poin),
+                    pilihan_json,
+                    jawaban_json
+                })
+            });
+            if (!res.ok) throw new Error('Gagal memproses data soal');
+            alert(currentSoalId ? 'Soal berhasil diperbarui!' : 'Soal berhasil disimpan!');
+            closeTambahModal();
+            loadSoal();
+        } catch(err) { alert(err.message); }
+    });
+
+    // ─── Load info ujian ─────────────────────────────────────────────────────
     async function loadUjianInfo() {
         if (!ujianId) return;
         try {
             const res = await fetch(`${API_BASE}/api/ujian/${ujianId}`, { credentials: 'include' });
-            if (!res.ok) throw new Error('Gagal memuat info ujian');
+            if (!res.ok) throw new Error();
             const u = await res.json();
             document.getElementById('ujianInfo').innerHTML = `
                 <span><i class="fas fa-file-alt"></i> ${escapeHtml(u.nama_ujian)}</span>
                 <span><i class="fas fa-book"></i> ${escapeHtml(u.mata_pelajaran?.nama_mapel || '-')}</span>
                 <span><i class="fas fa-clock"></i> ${u.durasi_menit} menit</span>
             `;
-        } catch(err) { console.error(err); alert('Gagal memuat info ujian'); }
+        } catch { alert('Gagal memuat info ujian'); }
     }
 
+    // ─── Load daftar soal ────────────────────────────────────────────────────
     async function loadSoal() {
         if (!ujianId) return;
         try {
             const res = await fetch(`${API_BASE}/api/soal/ujian/${ujianId}`, { credentials: 'include' });
-            if (!res.ok) throw new Error('Gagal memuat soal');
+            if (!res.ok) throw new Error();
             localSoalList = await res.json();
             const container = document.getElementById('soalContainer');
             container.innerHTML = '';
-            
-            if(localSoalList.length === 0) {
-                container.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size:2.5rem; margin-bottom:10px;"></i><p>Belum ada soal tersedia. Silakan klik tambah soal.</p></div>`;
+
+            if (localSoalList.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size:2.5rem; margin-bottom:10px;"></i><p>Belum ada soal. Klik tambah soal.</p></div>`;
                 document.getElementById('totalSoal').innerText = 0;
                 document.getElementById('totalPoin').innerText = 0;
                 return;
@@ -362,57 +630,52 @@
             let totalPoin = 0;
             localSoalList.forEach((soal, idx) => {
                 totalPoin += soal.poin;
-                
                 let detailPilihanHtml = '';
+
                 if ((soal.jenis_soal === 'pilihan_ganda' || soal.jenis_soal === 'pilihan_ganda_komplek') && soal.pilihan_json) {
                     detailPilihanHtml = `<div class="soal-pilihan-list">`;
-                    const opsi = ['A', 'B', 'C', 'D'];
-                    opsi.forEach(key => {
+                    ['A','B','C','D'].forEach(key => {
                         if (soal.pilihan_json[key]) {
-                            let isBenar = false;
-                            if (soal.jenis_soal === 'pilihan_ganda') {
-                                isBenar = soal.jawaban_json === key;
-                            } else {
-                                isBenar = Array.isArray(soal.jawaban_json) && soal.jawaban_json.includes(key);
-                            }
-                            const highlightStyle = isBenar ? 'style="font-weight: 700; color: #10b981; background: rgba(16,185,129,0.08); border-radius:12px; padding:4px 8px;"' : '';
+                            let isBenar = soal.jenis_soal === 'pilihan_ganda'
+                                ? soal.jawaban_json === key
+                                : Array.isArray(soal.jawaban_json) && soal.jawaban_json.includes(key);
+                            const hl = isBenar ? 'style="font-weight:700; color:#10b981; background:rgba(16,185,129,0.08); border-radius:12px; padding:4px 8px;"' : '';
                             detailPilihanHtml += `
-                                <div class="soal-pilihan-item" ${highlightStyle}>
+                                <div class="soal-pilihan-item" ${hl}>
                                     <span class="soal-pilihan-huruf">${key}.</span>
-                                    <span class="soal-pilihan-teks">${escapeHtml(soal.pilihan_json[key])}</span>
+                                    <span class="soal-pilihan-teks">${soal.pilihan_json[key]}</span>
                                 </div>`;
                         }
                     });
                     detailPilihanHtml += `</div>`;
-                    
-                    let kunciTeks = soal.jenis_soal === 'pilihan_ganda' ? soal.jawaban_json : (Array.isArray(soal.jawaban_json) ? soal.jawaban_json.join(', ') : soal.jawaban_json);
-                    detailPilihanHtml += `<div class="soal-jawaban soal-jawaban-benar"><i class="fas fa-check-circle"></i> Kunci Jawaban: ${kunciTeks}</div>`;
-                
+                    const kunci = soal.jenis_soal === 'pilihan_ganda' ? soal.jawaban_json : (Array.isArray(soal.jawaban_json) ? soal.jawaban_json.join(', ') : soal.jawaban_json);
+                    detailPilihanHtml += `<div class="soal-jawaban soal-jawaban-benar"><i class="fas fa-check-circle"></i> Kunci Jawaban: ${kunci}</div>`;
+
                 } else if (soal.jenis_soal === 'benar_salah') {
-                    const statusBS = soal.jawaban_json === 'benar' ? '✅ Benar' : '❌ Salah';
-                    detailPilihanHtml = `<div class="soal-jawaban soal-jawaban-benar"><i class="fas fa-check-circle"></i> Kunci Jawaban: ${statusBS}</div>`;
-                
+                    const s = soal.jawaban_json === 'benar' ? '✅ Benar' : '❌ Salah';
+                    detailPilihanHtml = `<div class="soal-jawaban soal-jawaban-benar"><i class="fas fa-check-circle"></i> Kunci Jawaban: ${s}</div>`;
+
                 } else if (soal.jenis_soal === 'menjodohkan' && soal.pilihan_json?.pairs) {
-                    detailPilihanHtml = `<div class="soal-pilihan-list" style="gap: 6px;">`;
+                    detailPilihanHtml = `<div class="soal-pilihan-list" style="gap:6px;">`;
                     soal.pilihan_json.pairs.forEach(pair => {
                         detailPilihanHtml += `
-                            <div class="soal-pilihan-item" style="background: rgba(123,107,155,0.06); border: 1px dashed rgba(123,107,155,0.2);">
+                            <div class="soal-pilihan-item" style="background:rgba(123,107,155,0.06); border:1px dashed rgba(123,107,155,0.2);">
                                 <span style="font-weight:600; color:#2d2a4a;">${escapeHtml(pair.pernyataan)}</span>
                                 <span style="color:#8b6cb0; margin:0 10px;"><i class="fas fa-arrows-alt-h"></i></span>
                                 <span style="font-weight:600; color:#10b981;">${escapeHtml(pair.pasangan)}</span>
                             </div>`;
                     });
                     detailPilihanHtml += `</div>`;
-                
+
                 } else if (soal.jenis_soal === 'essay') {
-                    detailPilihanHtml = `<div class="soal-jawaban" style="background:linear-gradient(135deg, #3b82f6, #2563eb);"><i class="fas fa-info-circle"></i> Koreksi Manual Uraian</div>`;
+                    detailPilihanHtml = `<div class="soal-jawaban" style="background:linear-gradient(135deg,#3b82f6,#2563eb);"><i class="fas fa-info-circle"></i> Koreksi Manual Uraian</div>`;
                 }
 
                 const card = document.createElement('div');
                 card.className = 'soal-card';
                 card.innerHTML = `
                     <div class="soal-header">
-                        <div class="soal-tag">${idx+1}. ${soal.jenis_soal.replace(/_/g, ' ')}</div>
+                        <div class="soal-tag">${idx+1}. ${soal.jenis_soal.replace(/_/g,' ')}</div>
                         <div class="soal-poin">${soal.poin} poin</div>
                     </div>
                     <div class="soal-pertanyaan">${soal.pertanyaan}</div>
@@ -426,9 +689,10 @@
             });
             document.getElementById('totalSoal').innerText = localSoalList.length;
             document.getElementById('totalPoin').innerText = totalPoin;
-        } catch(err) { alert('Gagal memuat soal'); }
+        } catch { alert('Gagal memuat soal'); }
     }
 
+    // ─── Edit soal ───────────────────────────────────────────────────────────
     async function editSoal(id) {
         const soal = localSoalList.find(s => s.id === id);
         if (!soal) return;
@@ -436,7 +700,7 @@
         currentSoalId = id;
         document.getElementById('modalTambah').classList.add('active');
         document.querySelector('.modal-header h2').innerHTML = `<i class="fas fa-edit"></i> Edit Soal ID #${id}`;
-        document.querySelector('.modal-header p').innerText = "Perbarui pertanyaan dan pilihan jawaban";
+        document.querySelector('.modal-header p').innerText  = "Perbarui pertanyaan dan pilihan jawaban";
 
         initQuill();
         quill.root.innerHTML = soal.pertanyaan;
@@ -446,52 +710,48 @@
         setMode('manual');
 
         if (soal.jenis_soal === 'pilihan_ganda' && soal.pilihan_json) {
-            document.querySelector('#form-pilihan_ganda textarea[name="pilihan_a"]').value = soal.pilihan_json.A || '';
-            document.querySelector('#form-pilihan_ganda textarea[name="pilihan_b"]').value = soal.pilihan_json.B || '';
-            document.querySelector('#form-pilihan_ganda textarea[name="pilihan_c"]').value = soal.pilihan_json.C || '';
-            document.querySelector('#form-pilihan_ganda textarea[name="pilihan_d"]').value = soal.pilihan_json.D || '';
-            const checkedRadio = document.querySelector(`#form-pilihan_ganda input[name="jawaban"][value="${soal.jawaban_json}"]`);
-            if (checkedRadio) checkedRadio.checked = true;
-        
+            initPilihanEditors();
+            ['A','B','C','D'].forEach(k => {
+                if (quillPG[k]) quillPG[k].root.innerHTML = soal.pilihan_json[k] || '';
+            });
+            const r = document.querySelector(`#form-pilihan_ganda input[name="jawaban"][value="${soal.jawaban_json}"]`);
+            if (r) r.checked = true;
+
         } else if (soal.jenis_soal === 'pilihan_ganda_komplek' && soal.pilihan_json) {
-            document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_a"]').value = soal.pilihan_json.A || '';
-            document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_b"]').value = soal.pilihan_json.B || '';
-            document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_c"]').value = soal.pilihan_json.C || '';
-            document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_d"]').value = soal.pilihan_json.D || '';
-            
+            initPilihanEditors();
+            ['A','B','C','D'].forEach(k => {
+                if (quillPGK[k]) quillPGK[k].root.innerHTML = soal.pilihan_json[k] || '';
+            });
             document.querySelectorAll('#form-pilihan_ganda_komplek input[name="jawaban_komplek"]').forEach(cb => {
                 cb.checked = Array.isArray(soal.jawaban_json) && soal.jawaban_json.includes(cb.value);
             });
-        
+
         } else if (soal.jenis_soal === 'benar_salah') {
-            const checkedBS = document.querySelector(`#form-benar_salah input[name="jawaban_bs"][value="${soal.jawaban_json}"]`);
-            if (checkedBS) checkedBS.checked = true;
-        
+            const r = document.querySelector(`#form-benar_salah input[name="jawaban_bs"][value="${soal.jawaban_json}"]`);
+            if (r) r.checked = true;
+
         } else if (soal.jenis_soal === 'menjodohkan') {
             const container = document.getElementById('pasangan-container');
             container.innerHTML = '';
-            if (soal.pilihan_json?.pairs) {
-                soal.pilihan_json.pairs.forEach(pair => {
-                    tambahPasanganRow(pair.pernyataan, pair.pasangan);
-                });
-            }
+            soal.pilihan_json?.pairs?.forEach(pair => tambahPasanganRow(pair.pernyataan, pair.pasangan));
         }
     }
 
+    // ─── Hapus soal ──────────────────────────────────────────────────────────
     async function hapusSoal(id) {
-        if (confirm('Apakah Anda yakin ingin menghapus soal ini?')) {
-            try {
-                const res = await fetch(`${API_BASE}/api/soal/${id}`, { method: 'DELETE', credentials: 'include' });
-                if (!res.ok) throw new Error('Gagal menghapus');
-                loadSoal();
-            } catch(err) { alert('Gagal menghapus soal'); }
-        }
+        if (!confirm('Apakah Anda yakin ingin menghapus soal ini?')) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/soal/${id}`, { method: 'DELETE', credentials: 'include' });
+            if (!res.ok) throw new Error();
+            loadSoal();
+        } catch { alert('Gagal menghapus soal'); }
     }
 
+    // ─── Generate soal dengan AI ─────────────────────────────────────────────
     async function generateSoalAI() {
         const topik = document.querySelector('#aiForm textarea[name="topik"]').value.trim();
         if (!topik) return alert('Masukkan topik materi');
-        const jenis = document.getElementById('jenis_soal').value;
+        const jenis  = document.getElementById('jenis_soal').value;
         const jumlah = document.getElementById('ai_jumlah').value;
         try {
             const res = await fetch(`${API_BASE}/api/ai/generate`, {
@@ -499,192 +759,21 @@
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
-                    id_ujian: parseInt(ujianId),
-                    jenis_soal: jenis,
-                    topik: topik,
-                    jumlah_soal: parseInt(jumlah),
-                    level_kognitif: document.getElementById('ai_level').value,
-                    kategori: document.getElementById('ai_kategori').value
+                    id_ujian:        parseInt(ujianId),
+                    jenis_soal:      jenis,
+                    topik,
+                    jumlah_soal:     parseInt(jumlah),
+                    level_kognitif:  document.getElementById('ai_level').value,
+                    kategori:        document.getElementById('ai_kategori').value
                 })
             });
             const data = await res.json();
-            if (data.success) {
-                alert('Soal berhasil dibuat oleh AI!');
-                closeTambahModal();
-                loadSoal();
-            } else {
-                alert('Gagal generate: ' + (data.error || 'Unknown error'));
-            }
+            if (data.success) { alert('Soal berhasil dibuat oleh AI!'); closeTambahModal(); loadSoal(); }
+            else alert('Gagal generate: ' + (data.error || 'Unknown error'));
         } catch(err) { alert('Error: ' + err.message); }
     }
 
-    function pilihJenis(jenis) {
-        currentJenis = jenis;
-        document.getElementById('jenis_soal').value = jenis;
-        document.querySelectorAll('.jenis-card').forEach(c => c.classList.remove('selected'));
-        
-        const selectedCard = document.querySelector(`.jenis-card[data-jenis="${jenis}"]`);
-        if (selectedCard) selectedCard.classList.add('selected');
-        
-        document.getElementById('form-pilihan_ganda').style.display = 'none';
-        document.getElementById('form-benar_salah').style.display = 'none';
-        document.getElementById('form-essay').style.display = 'none';
-        document.getElementById('form-menjodohkan').style.display = 'none';
-        document.getElementById('form-pilihan_ganda_komplek').style.display = 'none';
-        
-        if (jenis === 'pilihan_ganda') document.getElementById('form-pilihan_ganda').style.display = 'block';
-        else if (jenis === 'benar_salah') document.getElementById('form-benar_salah').style.display = 'block';
-        else if (jenis === 'essay') document.getElementById('form-essay').style.display = 'block';
-        else if (jenis === 'menjodohkan') {
-            document.getElementById('form-menjodohkan').style.display = 'block';
-            const container = document.getElementById('pasangan-container');
-            if (container.children.length === 0) {
-                tambahPasanganRow('', ''); 
-            }
-        }
-        else if (jenis === 'pilihan_ganda_komplek') document.getElementById('form-pilihan_ganda_komplek').style.display = 'block';
-    }
-
-    function setMode(mode) {
-        const manual = document.getElementById('manualForm');
-        const ai = document.getElementById('aiForm');
-        const btnManual = document.getElementById('modeManual');
-        const btnAI = document.getElementById('modeAI');
-        if (mode === 'manual') {
-            btnManual.classList.add('active');
-            btnAI.classList.remove('active');
-            manual.classList.remove('hidden');
-            ai.classList.remove('active');
-            document.getElementById('submitBtn').style.display = 'block';
-        } else {
-            btnAI.classList.add('active');
-            btnManual.classList.remove('active');
-            manual.classList.add('hidden');
-            ai.classList.add('active');
-            document.getElementById('submitBtn').style.display = 'none';
-        }
-    }
-
-    function openTambahModal() {
-        currentSoalId = null; 
-        document.getElementById('modalTambah').classList.add('active');
-        document.querySelector('.modal-header h2').innerHTML = `<i class="fas fa-plus-circle"></i> Tambah Soal Baru`;
-        document.querySelector('.modal-header p').innerText = "Isi pertanyaan dan pilihan jawaban";
-        document.getElementById('formTambahSoal').reset();
-        document.getElementById('pasangan-container').innerHTML = '';
-        
-        initQuill();
-        quill.root.innerHTML = '';
-        pilihJenis('pilihan_ganda');
-        setMode('manual');
-    }
-    
-    function closeTambahModal() { 
-        document.getElementById('modalTambah').classList.remove('active'); 
-    }
-
-    function tambahPasanganRow(pernyataan = '', pasangan = '') {
-        const container = document.getElementById('pasangan-container');
-        const newItem = document.createElement('div');
-        newItem.className = 'pasangan-item';
-        newItem.style.cssText = 'display:flex; gap:10px; margin-bottom:10px; align-items:center;';
-        newItem.innerHTML = `
-            <input type="text" placeholder="Pernyataan" value="${escapeHtml(pernyataan)}" style="flex:1; padding:10px; border-radius:40px; border:none; background:#eef0f5; box-shadow:inset 2px 2px 5px #bebebe;">
-            <span style="display:flex; align-items:center; color:#8b6cb0;">⟷</span>
-            <input type="text" placeholder="Pasangan" value="${escapeHtml(pasangan)}" style="flex:1; padding:10px; border-radius:40px; border:none; background:#eef0f5; box-shadow:inset 2px 2px 5px #bebebe;">
-            <button type="button" class="hapus-pasangan" style="background:#ef4444; color:white; border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
-        `;
-        container.appendChild(newItem);
-        newItem.querySelector('.hapus-pasangan').addEventListener('click', () => {
-            newItem.remove();
-        });
-    }
-
-    document.getElementById('tambah-pasangan').addEventListener('click', () => {
-        tambahPasanganRow('', '');
-    });
-
-    document.getElementById('formTambahSoal').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const jenis = document.getElementById('jenis_soal').value;
-        let jawaban_json = null, pilihan_json = null;
-        let pertanyaan = '';
-        
-        if (quill) {
-            pertanyaan = quill.root.innerHTML;
-            document.getElementById('pertanyaanHidden').value = pertanyaan;
-        } else {
-            pertanyaan = document.querySelector('#manualForm textarea[name="pertanyaan"]')?.value || '';
-        }
-        
-        const poin = document.querySelector('#manualForm input[name="poin"]').value || 1;
-        if (!pertanyaan || pertanyaan === '<p><br></p>') return alert('Pertanyaan wajib diisi');
-
-        if (jenis === 'pilihan_ganda') {
-            pilihan_json = {
-                A: document.querySelector('#form-pilihan_ganda textarea[name="pilihan_a"]').value.trim(),
-                B: document.querySelector('#form-pilihan_ganda textarea[name="pilihan_b"]').value.trim(),
-                C: document.querySelector('#form-pilihan_ganda textarea[name="pilihan_c"]').value.trim(),
-                D: document.querySelector('#form-pilihan_ganda textarea[name="pilihan_d"]').value.trim()
-            };
-            jawaban_json = document.querySelector('input[name="jawaban"]:checked')?.value;
-            if (!jawaban_json) return alert('Pilih salah satu jawaban benar');
-        
-        } else if (jenis === 'benar_salah') {
-            jawaban_json = document.querySelector('input[name="jawaban_bs"]:checked')?.value;
-        
-        } else if (jenis === 'essay') {
-            jawaban_json = null;
-        
-        } else if (jenis === 'menjodohkan') {
-            const pairs = [];
-            document.querySelectorAll('.pasangan-item').forEach(item => {
-                const inputs = item.querySelectorAll('input');
-                if (inputs[0]?.value.trim() && inputs[1]?.value.trim()) {
-                    pairs.push({ pernyataan: inputs[0].value.trim(), pasangan: inputs[1].value.trim() });
-                }
-            });
-            if (pairs.length === 0) return alert('Tambahkan minimal satu pasang pernyataan-pasangan');
-            pilihan_json = { pairs };
-            jawaban_json = pairs;
-        
-        } else if (jenis === 'pilihan_ganda_komplek') {
-            pilihan_json = {
-                A: document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_a"]').value.trim(),
-                B: document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_b"]').value.trim(),
-                C: document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_c"]').value.trim(),
-                D: document.querySelector('#form-pilihan_ganda_komplek textarea[name="pilihan_komplek_d"]').value.trim()
-            };
-            const checked = [];
-            document.querySelectorAll('#form-pilihan_ganda_komplek input[name="jawaban_komplek"]:checked').forEach(cb => checked.push(cb.value));
-            if (checked.length === 0) return alert('Pilih minimal satu jawaban benar untuk PG Kompleks');
-            jawaban_json = checked;
-        }
-
-        try {
-            const url = currentSoalId ? `${API_BASE}/api/soal/${currentSoalId}` : `${API_BASE}/api/soal`;
-            const method = currentSoalId ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    id_ujian: parseInt(ujianId),
-                    jenis_soal: jenis,
-                    pertanyaan: pertanyaan,
-                    poin: parseInt(poin),
-                    pilihan_json,
-                    jawaban_json
-                })
-            });
-            if (!res.ok) throw new Error('Gagal memproses data soal');
-            alert(currentSoalId ? 'Soal berhasil diperbarui!' : 'Soal berhasil disimpan!');
-            closeTambahModal();
-            loadSoal();
-        } catch(err) { alert(err.message); }
-    });
-
+    // ─── Boot ────────────────────────────────────────────────────────────────
     if (ujianId) {
         loadUjianInfo();
         loadSoal();
