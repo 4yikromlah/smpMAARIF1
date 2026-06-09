@@ -74,18 +74,56 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 // Admin
+// ========== SEKSI ADMIN (UPDATE) ==========
 app.get('/api/admin', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('admin').select('*').order('id');
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
+
 app.post('/api/admin', requireAdmin, async (req, res) => {
     const { username, password, nama_lengkap, is_utama } = req.body;
+    if (!password || password.length < 4) return res.status(400).json({ error: 'Password minimal 4 karakter' });
+    
+    // Validasi duplikasi username
+    const { data: existing } = await supabase.from('admin').select('username').eq('username', username);
+    if (existing && existing.length) return res.status(400).json({ error: 'Username sudah digunakan' });
     const hashed = await bcrypt.hash(password, 10);
-    const { data, error } = await supabase.from('admin').insert([{ username, password: hashed, nama_lengkap, is_utama }]).select();
+    
+    // PERBAIKAN: Menyimpan teks asli ke password_plain saat buat admin baru
+    const { data, error } = await supabase.from('admin').insert([{ 
+        username, 
+        password: hashed, 
+        password_plain: password, 
+        nama_lengkap, 
+        is_utama 
+    }]).select();
     if (error) return res.status(500).json({ error: error.message });
     res.json(data[0]);
 });
+
+// PERBAIKAN: Menyediakan rute API PUT untuk EDIT / UPDATE data admin
+app.put('/api/admin/:id', requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { username, password, nama_lengkap, is_utama } = req.body;
+    try {
+        const updateData = { username, nama_lengkap, is_utama };
+        
+        // Jika input password baru diisi, enkripsi ulang dan simpan teks aslinya
+        if (password && password.trim() !== '') {
+            if (password.length < 4) return res.status(400).json({ error: 'Password minimal 4 karakter' });
+            updateData.password = await bcrypt.hash(password, 10);
+            updateData.password_plain = password;
+        }
+        const { data, error } = await supabase.from('admin').update(updateData).eq('id', id).select();
+        if (error) return res.status(500).json({ error: error.message });
+        if (!data || data.length === 0) return res.status(404).json({ error: 'Data admin tidak ditemukan' });
+        res.json(data[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/admin/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { data: admin } = await supabase.from('admin').select('is_utama').eq('id', id).single();
