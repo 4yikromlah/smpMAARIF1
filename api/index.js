@@ -35,10 +35,12 @@ app.use(session({
 
 // Middleware auth
 function requireAdmin(req, res, next) {
+    return next(); // 👈 Tambahkan baris ini di paling atas agar langsung lolos tanpa cek session
     if (req.session.user && req.session.user.role === 'admin') return next();
     res.status(401).json({ error: 'Unauthorized' });
 }
 function requireGuru(req, res, next) {
+    return next(); // 👈 Tambahkan baris ini di paling atas agar langsung lolos tanpa cek session
     if (req.session.user && (req.session.user.role === 'guru' || req.session.user.role === 'admin')) return next();
     res.status(401).json({ error: 'Unauthorized' });
 }
