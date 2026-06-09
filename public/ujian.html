@@ -177,7 +177,7 @@
                 if (u.status === 'aktif') aktif++;
                 const statusClass = u.status === 'aktif' ? 'badge-aktif' : 'badge-nonaktif';
                 
-                // FIXED & UPDATED: Mengubah </table> menjadi </tr> dan menyelaraskan parameter URL menjadi ?id=
+                // FIXED & UPDATED: Mengubah target link soal.html menjadi kelola_soal.html
                 tbody.innerHTML += `<tr>
                     <td>${i+1}</td>
                     <td><strong>${escapeHtml(u.nama_ujian)}</strong></td>
@@ -188,7 +188,7 @@
                     <td><span class="badge ${statusClass}">${u.status.toUpperCase()}</span></td>
                     <td class="action-group">
                         <button class="btn-action" onclick="toggleStatus(${u.id}, '${u.status}')"><i class="fas fa-sync-alt"></i> Ganti Status</button>
-                        <a href="soal.html?id=${u.id}" class="btn-action"><i class="fas fa-question-circle"></i> Kelola Soal</a>
+                        <a href="kelola_soal.html?id=${u.id}" class="btn-action"><i class="fas fa-question-circle"></i> Kelola Soal</a>
                         <button class="btn-action" onclick="editUjian(${u.id})"><i class="fas fa-edit"></i> Edit</button>
                         <button class="btn-action" onclick="hapusUjian(${u.id})"><i class="fas fa-trash-alt"></i> Hapus</button>
                     </td>
