@@ -20,6 +20,7 @@ if (process.env.OPENAI_API_KEY) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
