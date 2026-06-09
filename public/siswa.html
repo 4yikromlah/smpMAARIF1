@@ -173,7 +173,7 @@
                     <td>${i+1}</td>
                     <td>${escapeHtml(s.nis)}</td>
                     <td>${escapeHtml(s.username)}</td>
-                    <td><span class="pass-text">${escapeHtml(s.password || '-')}</span></td>
+                    <td><span class="pass-text">${escapeHtml(s.password_plain || '-')}</span></td>
                     <td>${escapeHtml(s.nama_lengkap)}</td>
                     <td><span class="badge">${escapeHtml(s.kelas?.nama_kelas || '-')}</span></td>
                     <td>${new Date(s.created_at).toLocaleDateString('id-ID')}</td>
