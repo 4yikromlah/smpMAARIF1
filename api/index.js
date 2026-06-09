@@ -96,34 +96,58 @@ app.delete('/api/admin/:id', requireAdmin, async (req, res) => {
 });
 
 // Guru
+// ========== SEKSI GURU (SUDAH DIPERBAIKI) ==========
 app.get('/api/guru', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('guru').select('*').order('id');
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
+
 app.post('/api/guru', requireAdmin, async (req, res) => {
     const { nip, username, password, nama_lengkap } = req.body;
+    if (!password || password.length < 4) return res.status(400).json({ error: 'Password minimal 4 karakter' });
     const { data: existing } = await supabase.from('guru').select('nip, username').or(`nip.eq.${nip},username.eq.${username}`);
     if (existing && existing.length) return res.status(400).json({ error: 'NIP atau Username sudah ada' });
     const hashed = await bcrypt.hash(password, 10);
-    const { data, error } = await supabase.from('guru').insert([{ nip, username, password: hashed, nama_lengkap }]).select();
+    
+    // PERBAIKAN: Menyimpan teks asli ke password_plain saat tambah guru baru
+    const { data, error } = await supabase.from('guru').insert([{ 
+        nip, 
+        username, 
+        password: hashed, 
+        password_plain: password, 
+        nama_lengkap 
+    }]).select();
+    
     if (error) return res.status(500).json({ error: error.message });
     res.json(data[0]);
 });
+
+// PERBAIKAN: Menyediakan rute API PUT untuk EDIT / UPDATE data guru
+app.put('/api/guru/:id', requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { nip, username, password, nama_lengkap } = req.body;
+        try {
+        const updateData = { nip, username, nama_lengkap };
+        
+        // Jika input password di form diisi, enkripsi ulang dan simpan teks aslinya
+        if (password && password.trim() !== '') {
+            updateData.password = await bcrypt.hash(password, 10);
+            updateData.password_plain = password;
+        }
+        const { data, error } = await supabase.from('guru').update(updateData).eq('id', id).select();
+        if (error) return res.status(500).json({ error: error.message });
+        if (!data || data.length === 0) return res.status(404).json({ error: 'Data guru tidak ditemukan' });
+        res.json(data[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/guru/:id', requireAdmin, async (req, res) => {
     const { error } = await supabase.from('guru').delete().eq('id', req.params.id);
     if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
-});
-app.get('/api/guru/dashboard', requireGuru, async (req, res) => {
-    const guruId = req.session.user.id;
-    const { data: pengawasList, error } = await supabase
-        .from('pengawas')
-        .select('ujian: id_ujian (*, mata_pelajaran: id_mapel (nama_mapel))')
-        .eq('id_guru', guruId);
-    if (error) return res.status(500).json({ error: error.message });
-    const ujian = pengawasList.map(p => p.ujian);
-    res.json({ ujian, jumlahPengawasan: ujian.length, ujianAktif: ujian.filter(u => u.status === 'aktif').length });
 });
 
 // Siswa
