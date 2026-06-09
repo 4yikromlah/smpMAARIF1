@@ -167,7 +167,7 @@
                     <td><span class="badge">${escapeHtml(s.kelas?.nama_kelas || '-')}</span></td>
                     <td>${new Date(s.created_at).toLocaleDateString('id-ID')}</td>
                     <td><button class="btn-delete" data-id="${s.id}"><i class="fas fa-trash-alt"></i> Hapus</button></td>
-                　`</td></tr>`;
+                </tr>`;
             });
             document.querySelectorAll('.btn-delete[data-id]').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
