@@ -33,14 +33,54 @@ app.use(session({
     cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Middleware auth
+// ========== UPLOAD GAMBAR KE SUPABASE STORAGE ==========
+app.post('/api/upload', requireAdmin, upload.single('image'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'Tidak ada file gambar yang dikirim' });
+    }
+
+    const file = req.file;
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+        return res.status(400).json({ error: 'Tipe file tidak didukung. Gunakan JPEG, PNG, GIF, atau WEBP.' });
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+        return res.status(400).json({ error: 'Ukuran gambar maksimal 2MB' });
+    }
+
+    const fileExt = file.originalname.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
+    const filePath = `soal/${fileName}`;
+
+    const { data, error } = await supabase.storage
+        .from('soal-images')   // Nama bucket di Supabase
+        .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            cacheControl: '3600',
+            upsert: false
+        });
+
+    if (error) {
+        console.error('Supabase upload error:', error);
+        return res.status(500).json({ error: 'Gagal menyimpan gambar ke penyimpanan' });
+    }
+
+    const { data: publicUrlData } = supabase.storage
+        .from('soal-images')
+        .getPublicUrl(filePath);
+    
+    res.json({ url: publicUrlData.publicUrl });
+});
+
+// Middleware auth (SEMENTARA: bypass dengan return next() untuk memudahkan testing)
 function requireAdmin(req, res, next) {
-    return next(); // 👈 Tambahkan baris ini di paling atas agar langsung lolos tanpa cek session
+    return next(); // bypass untuk development
     if (req.session.user && req.session.user.role === 'admin') return next();
     res.status(401).json({ error: 'Unauthorized' });
 }
 function requireGuru(req, res, next) {
-    return next(); // 👈 Tambahkan baris ini di paling atas agar langsung lolos tanpa cek session
+    return next(); // bypass untuk development
     if (req.session.user && (req.session.user.role === 'guru' || req.session.user.role === 'admin')) return next();
     res.status(401).json({ error: 'Unauthorized' });
 }
@@ -74,7 +114,6 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 // Admin
-// ========== SEKSI ADMIN (UPDATE) ==========
 app.get('/api/admin', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('admin').select('*').order('id');
     if (error) return res.status(500).json({ error: error.message });
@@ -85,12 +124,10 @@ app.post('/api/admin', requireAdmin, async (req, res) => {
     const { username, password, nama_lengkap, is_utama } = req.body;
     if (!password || password.length < 4) return res.status(400).json({ error: 'Password minimal 4 karakter' });
     
-    // Validasi duplikasi username
     const { data: existing } = await supabase.from('admin').select('username').eq('username', username);
     if (existing && existing.length) return res.status(400).json({ error: 'Username sudah digunakan' });
     const hashed = await bcrypt.hash(password, 10);
     
-    // PERBAIKAN: Menyimpan teks asli ke password_plain saat buat admin baru
     const { data, error } = await supabase.from('admin').insert([{ 
         username, 
         password: hashed, 
@@ -102,14 +139,11 @@ app.post('/api/admin', requireAdmin, async (req, res) => {
     res.json(data[0]);
 });
 
-// PERBAIKAN: Menyediakan rute API PUT untuk EDIT / UPDATE data admin
 app.put('/api/admin/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { username, password, nama_lengkap, is_utama } = req.body;
     try {
         const updateData = { username, nama_lengkap, is_utama };
-        
-        // Jika input password baru diisi, enkripsi ulang dan simpan teks aslinya
         if (password && password.trim() !== '') {
             if (password.length < 4) return res.status(400).json({ error: 'Password minimal 4 karakter' });
             updateData.password = await bcrypt.hash(password, 10);
@@ -134,7 +168,6 @@ app.delete('/api/admin/:id', requireAdmin, async (req, res) => {
 });
 
 // Guru
-// ========== SEKSI GURU (SUDAH DIPERBAIKI) ==========
 app.get('/api/guru', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('guru').select('*').order('id');
     if (error) return res.status(500).json({ error: error.message });
@@ -148,7 +181,6 @@ app.post('/api/guru', requireAdmin, async (req, res) => {
     if (existing && existing.length) return res.status(400).json({ error: 'NIP atau Username sudah ada' });
     const hashed = await bcrypt.hash(password, 10);
     
-    // PERBAIKAN: Menyimpan teks asli ke password_plain saat tambah guru baru
     const { data, error } = await supabase.from('guru').insert([{ 
         nip, 
         username, 
@@ -161,14 +193,11 @@ app.post('/api/guru', requireAdmin, async (req, res) => {
     res.json(data[0]);
 });
 
-// PERBAIKAN: Menyediakan rute API PUT untuk EDIT / UPDATE data guru
 app.put('/api/guru/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { nip, username, password, nama_lengkap } = req.body;
-        try {
+    try {
         const updateData = { nip, username, nama_lengkap };
-        
-        // Jika input password di form diisi, enkripsi ulang dan simpan teks aslinya
         if (password && password.trim() !== '') {
             updateData.password = await bcrypt.hash(password, 10);
             updateData.password_plain = password;
@@ -189,8 +218,6 @@ app.delete('/api/guru/:id', requireAdmin, async (req, res) => {
 });
 
 // Siswa
-// ========== SEKSI SISWA (SUDAH DIPERBAIKI) ==========
-
 app.get('/api/siswa', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('siswa').select('*, kelas: id_kelas (nama_kelas)').order('id');
     if (error) return res.status(500).json({ error: error.message });
@@ -205,7 +232,6 @@ app.post('/api/siswa', requireAdmin, async (req, res) => {
     
     const hashed = await bcrypt.hash(password, 10);
     
-    // PERBAIKAN 1: Menyimpan teks asli ke password_plain saat input manual
     const { data, error } = await supabase.from('siswa').insert([{ 
         nis, 
         username, 
@@ -219,25 +245,18 @@ app.post('/api/siswa', requireAdmin, async (req, res) => {
     res.json(data[0]);
 });
 
-// PERBAIKAN STABIL (Paling Utama): Menyediakan API route untuk EDIT/UPDATE siswa
 app.put('/api/siswa/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { nis, username, password, nama_lengkap, id_kelas } = req.body;
-    
     try {
         const updateData = { nis, username, nama_lengkap, id_kelas };
-        
-        // Jika kotak password di form diisi/diubah, lakukan enkripsi & simpan plain teksnya
         if (password && password.trim() !== '') {
             updateData.password = await bcrypt.hash(password, 10);
             updateData.password_plain = password;
         }
-        
         const { data, error } = await supabase.from('siswa').update(updateData).eq('id', id).select();
-        
         if (error) return res.status(500).json({ error: error.message });
         if (!data || data.length === 0) return res.status(404).json({ error: 'Siswa tidak ditemukan' });
-        
         res.json(data[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -296,7 +315,6 @@ app.post('/api/siswa/import', requireAdmin, upload.single('file'), async (req, r
             
             const hashed = await bcrypt.hash(row.password, 10);
             
-            // PERBAIKAN 2: Menyimpan teks asli ke password_plain saat Import via Excel
             const { error } = await supabase.from('siswa').insert({ 
                 nis: row.nis, 
                 nama_lengkap: row.nama_lengkap, 
@@ -387,7 +405,6 @@ app.delete('/api/ujian/:id', requireAdmin, async (req, res) => {
 });
 
 // Soal
-// PERBAIKAN: API untuk Upload Gambar dari Text Editor (Soal & Opsi) ke Supabase Storage
 app.get('/api/soal/ujian/:idUjian', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('soal').select('*').eq('id_ujian', req.params.idUjian).order('id');
     if (error) return res.status(500).json({ error: error.message });
@@ -409,52 +426,6 @@ app.delete('/api/soal/:id', requireAdmin, async (req, res) => {
     const { error } = await supabase.from('soal').delete().eq('id', req.params.id);
     if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
-});
-
-// ========== UPLOAD GAMBAR KE SUPABASE STORAGE ==========
-app.post('/api/upload', requireAdmin, upload.single('image'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'Tidak ada file gambar yang dikirim' });
-    }
-
-    const file = req.file;
-    // Validasi tipe MIME
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedMimes.includes(file.mimetype)) {
-        return res.status(400).json({ error: 'Tipe file tidak didukung. Gunakan JPEG, PNG, GIF, atau WEBP.' });
-    }
-
-    // Batasi ukuran (misal 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-        return res.status(400).json({ error: 'Ukuran gambar maksimal 2MB' });
-    }
-
-    // Buat nama file unik
-    const fileExt = file.originalname.split('.').pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
-    const filePath = `soal/${fileName}`; // folder di dalam bucket
-
-    // Upload ke Supabase Storage
-    const { data, error } = await supabase.storage
-        .from('ujian-images') // ganti dengan nama bucket Anda
-        .upload(filePath, file.buffer, {
-            contentType: file.mimetype,
-            cacheControl: '3600',
-            upsert: false
-        });
-
-    if (error) {
-        console.error('Supabase upload error:', error);
-        return res.status(500).json({ error: 'Gagal menyimpan gambar ke penyimpanan' });
-    }
-
-    // Dapatkan public URL
-    const { data: publicUrlData } = supabase.storage
-        .from('ujian-images')
-        .getPublicUrl(filePath);
-    
-    const publicUrl = publicUrlData.publicUrl;
-    res.json({ url: publicUrl });
 });
 
 // Pengawas
