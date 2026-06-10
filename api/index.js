@@ -41,43 +41,33 @@ app.use(session({
 }));
 
 // ========== UPLOAD GAMBAR KE SUPABASE STORAGE ==========
+// ─── RUTE API UPLOAD GAMBAR (PENTING UNTUK QUILL) ──────────────────────────
 app.post('/api/upload', requireAdmin, upload.single('image'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'Tidak ada file gambar yang dikirim' });
+    try {
+        if (!req.file) return res.status(400).json({ error: 'Tidak ada file' });
+
+        const fileName = `soal/${Date.now()}_${Math.random().toString(36).substring(7)}.${req.file.originalname.split('.').pop()}`;
+
+        // Upload ke bucket 'soal-images'
+        const { data, error } = await supabase.storage
+            .from('soal-images')
+            .upload(fileName, req.file.buffer, {
+                contentType: req.file.mimetype,
+                upsert: true
+            });
+
+        if (error) throw error;
+
+        // Dapatkan URL publik
+        const { data: publicUrlData } = supabase.storage
+            .from('soal-images')
+            .getPublicUrl(fileName);
+
+        res.json({ url: publicUrlData.publicUrl });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Gagal mengupload gambar' });
     }
-
-    const file = req.file;
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedMimes.includes(file.mimetype)) {
-        return res.status(400).json({ error: 'Tipe file tidak didukung. Gunakan JPEG, PNG, GIF, atau WEBP.' });
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-        return res.status(400).json({ error: 'Ukuran gambar maksimal 2MB' });
-    }
-
-    const fileExt = file.originalname.split('.').pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
-    const filePath = `soal/${fileName}`;
-
-    const { data, error } = await supabase.storage
-        .from('soal-images')   // Nama bucket di Supabase
-        .upload(filePath, file.buffer, {
-            contentType: file.mimetype,
-            cacheControl: '3600',
-            upsert: false
-        });
-
-    if (error) {
-        console.error('Supabase upload error:', error);
-        return res.status(500).json({ error: 'Gagal menyimpan gambar ke penyimpanan' });
-    }
-
-    const { data: publicUrlData } = supabase.storage
-        .from('soal-images')
-        .getPublicUrl(filePath);
-    
-    res.json({ url: publicUrlData.publicUrl });
 });
 
 // Middleware auth (SEMENTARA: bypass dengan return next() untuk memudahkan testing)
