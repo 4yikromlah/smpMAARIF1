@@ -11,16 +11,23 @@ const OpenAI = require('openai');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
-const upload = multer({ storage: multer.memoryStorage() });
+// Konfigurasi Multer untuk menangani upload gambar (di memori)
+const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 2 * 1024 * 1024 } // Batas 2MB per gambar
+});
+
+const app = express();
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.set('trust proxy', 1);
 
 // Inisialisasi OpenAI
 let openai = null;
 if (process.env.OPENAI_API_KEY) {
     openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
-
-const app = express();
-app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
