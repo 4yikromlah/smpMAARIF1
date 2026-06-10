@@ -411,6 +411,52 @@ app.delete('/api/soal/:id', requireAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
+// ========== UPLOAD GAMBAR KE SUPABASE STORAGE ==========
+app.post('/api/upload', requireAdmin, upload.single('image'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'Tidak ada file gambar yang dikirim' });
+    }
+
+    const file = req.file;
+    // Validasi tipe MIME
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+        return res.status(400).json({ error: 'Tipe file tidak didukung. Gunakan JPEG, PNG, GIF, atau WEBP.' });
+    }
+
+    // Batasi ukuran (misal 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        return res.status(400).json({ error: 'Ukuran gambar maksimal 2MB' });
+    }
+
+    // Buat nama file unik
+    const fileExt = file.originalname.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
+    const filePath = `soal/${fileName}`; // folder di dalam bucket
+
+    // Upload ke Supabase Storage
+    const { data, error } = await supabase.storage
+        .from('ujian-images') // ganti dengan nama bucket Anda
+        .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            cacheControl: '3600',
+            upsert: false
+        });
+
+    if (error) {
+        console.error('Supabase upload error:', error);
+        return res.status(500).json({ error: 'Gagal menyimpan gambar ke penyimpanan' });
+    }
+
+    // Dapatkan public URL
+    const { data: publicUrlData } = supabase.storage
+        .from('ujian-images')
+        .getPublicUrl(filePath);
+    
+    const publicUrl = publicUrlData.publicUrl;
+    res.json({ url: publicUrl });
+});
+
 // Pengawas
 app.get('/api/pengawas', requireAdmin, async (req, res) => {
     const { data, error } = await supabase.from('pengawas').select('*, guru: id_guru (*), ujian: id_ujian (*)').order('id');
